@@ -43,7 +43,26 @@ def base_url(env_config):
 
 @pytest.fixture(scope="session")
 def login_data():
-    """Active account credentials from QA_USER / QA_PASSWORD (see .env.template)."""
+    """Active account credentials.
+
+    Two sources, checked in this order:
+    1. If the BOX env var is set, use that box's account from config/env/
+       (for example BOX=india on ENV=qa). The box names the password variable
+       to read from .env.
+    2. Otherwise read QA_USER and QA_PASSWORD from .env. This is the default.
+    """
+    box = os.environ.get("BOX")
+    if box:
+        from config.base_config import get_credentials
+        creds = get_credentials()
+        if not creds.get("email") or not creds.get("password"):
+            raise ValueError(
+                f"BOX='{box}' is set but its credentials are incomplete. The "
+                f"box's password variable is empty or missing in .env; see the "
+                f"password_env key for this box in config/env/.")
+        logging.info(f"[CREDENTIALS] Using box '{box}' account from env config")
+        return {"username": creds["email"], "password": creds["password"]}
+
     user = os.environ.get("QA_USER")
     password = os.environ.get("QA_PASSWORD")
     if not user or not password:

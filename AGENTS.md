@@ -17,8 +17,8 @@ Hard rules:
 
 - This repo is browser-free. Never add playwright or any browser dependency.
   API login is plain HTTP; if login fails, read the error, it names the fix.
-- Commit messages describe what the change does. No tool attribution, no
-  co-author lines, no generated-with footers.
+- Commit messages state what the change does and why. Nothing else goes in
+  them: no signatures, no boilerplate, no trailer lines.
 - Plain ASCII in prose: no em dashes, no curly quotes, no emoji.
 - QA Touch case mappings go in `config/qatouch_case_mapping.json`, never in
   test files.

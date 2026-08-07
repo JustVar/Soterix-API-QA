@@ -21,10 +21,10 @@ Auth: JSESSIONID cookie (not JWT). See `api_clients/auth_helper.py`.
 
 ## Status legend
 
-- ✅ **covered** - has a dedicated test in `tests/smoke/`
-- 🔄 **in-progress** - Tier 1 stub written, assertions need fleshing out
-- ❌ **uncovered** - observed live, no test
-- 🚫 **untriggered** - likely exists (write path, lazy panel) but not yet captured
+- **covered** - has a dedicated test in `tests/smoke/`
+- **in-progress** - Tier 1 stub written, assertions need fleshing out
+- **uncovered** - observed live, no test
+- **untriggered** - likely exists (write path, lazy panel) but not yet captured
 
 ---
 
@@ -32,110 +32,110 @@ Auth: JSESSIONID cookie (not JWT). See `api_clients/auth_helper.py`.
 
 | Status | Method | Path | Notes |
 |---|---|---|---|
-| ❌ | POST | `/REST/central/user/auth/login` | Primary login. Used by `auth_helper.py` but no smoke. |
-| ❌ | POST | `/REST/sso/login` | SSO fallback. Used by `auth_helper.py`. |
-| 🚫 | POST | `/REST/site/{siteId}/auth/logout` | Inferred from prior swagger; not yet exercised on staging. |
-| ✅ | GET | `/REST/central/user/session` | `test_user_apis.py::test_get_user_session` |
-| ✅ | GET | `/REST/central/userprofile/roles` | `test_user_apis.py::test_get_user_roles` |
-| ✅ | GET | `/REST/central/role/{enterpriseId}` | `test_user_apis.py::test_get_roles_by_enterprise` |
+| uncovered | POST | `/REST/central/user/auth/login` | Primary login. Used by `auth_helper.py` but no smoke. |
+| uncovered | POST | `/REST/sso/login` | SSO fallback. Used by `auth_helper.py`. |
+| untriggered | POST | `/REST/site/{siteId}/auth/logout` | Inferred from prior swagger; not yet exercised on staging. |
+| covered | GET | `/REST/central/user/session` | `test_user_apis.py::test_get_user_session` |
+| covered | GET | `/REST/central/userprofile/roles` | `test_user_apis.py::test_get_user_roles` |
+| covered | GET | `/REST/central/role/{enterpriseId}` | `test_user_apis.py::test_get_roles_by_enterprise` |
 
 ## User management (Admin -> Users)
 
 | Status | Method | Path | Where surfaced |
 |---|---|---|---|
-| ❌ | GET | `/REST/site/user/{email}` | Views, Media, Admin |
-| ❌ | GET | `/REST/central/user/enterprise/{enterpriseId}` | Admin -> Users tab |
-| ❌ | GET | `/REST/central/user/enterprise/{enterpriseId}/profile/{profileId}` | Admin dashboard summary |
-| 🚫 | POST | `/REST/central/user/update` | User edit (not triggered) |
-| 🚫 | POST | `/REST/central/user/password/reset` | Forgot-password flow |
-| 🚫 | PUT | `/REST/central/user/password/update` | Change-password modal |
+| uncovered | GET | `/REST/site/user/{email}` | Views, Media, Admin |
+| uncovered | GET | `/REST/central/user/enterprise/{enterpriseId}` | Admin -> Users tab |
+| uncovered | GET | `/REST/central/user/enterprise/{enterpriseId}/profile/{profileId}` | Admin dashboard summary |
+| untriggered | POST | `/REST/central/user/update` | User edit (not triggered) |
+| untriggered | POST | `/REST/central/user/password/reset` | Forgot-password flow |
+| untriggered | PUT | `/REST/central/user/password/update` | Change-password modal |
 
 ## Sites & devices (Admin -> Sites)
 
 | Status | Method | Path | Where surfaced |
 |---|---|---|---|
-| ✅ | GET | `/REST/site/{siteId}/location/tree` | `test_platform_apis.py` |
-| ✅ | GET | `/REST/site/{siteId}/channel` | `test_camera_apis.py` |
-| ✅ | GET | `/REST/site/{siteId}/channel/{channelId}/snap` | `test_camera_apis.py` |
-| ❌ | POST | `/REST/enterprise/sitedetails` | Admin -> Sites tab |
-| ❌ | GET | `/REST/site/{siteId}/getsitedetails` | Admin dashboard + Sites |
-| ❌ | GET | `/REST/edge/version/latest` | Admin -> Sites |
-| ❌ | GET | `/REST/edge/version/site/{siteId}/current` | Admin -> Sites |
-| ❌ | GET | `/REST/edge/version/site/{siteId}/previous` | Admin -> Sites |
-| 🚫 | DELETE | `/REST/site/{siteId}` | Site delete (not triggered) |
+| covered | GET | `/REST/site/{siteId}/location/tree` | `test_platform_apis.py` |
+| covered | GET | `/REST/site/{siteId}/channel` | `test_camera_apis.py` |
+| covered | GET | `/REST/site/{siteId}/channel/{channelId}/snap` | `test_camera_apis.py` |
+| uncovered | POST | `/REST/enterprise/sitedetails` | Admin -> Sites tab |
+| uncovered | GET | `/REST/site/{siteId}/getsitedetails` | Admin dashboard + Sites |
+| uncovered | GET | `/REST/edge/version/latest` | Admin -> Sites |
+| uncovered | GET | `/REST/edge/version/site/{siteId}/current` | Admin -> Sites |
+| uncovered | GET | `/REST/edge/version/site/{siteId}/previous` | Admin -> Sites |
+| untriggered | DELETE | `/REST/site/{siteId}` | Site delete (not triggered) |
 
 ## Rules & analytics (Admin -> Rules)
 
 | Status | Method | Path | Where surfaced |
 |---|---|---|---|
-| ❌ | POST | `/REST/rule/enterprise/{enterpriseId}/search` | Admin -> Rules + dashboard |
-| ❌ | GET | `/REST/analyticschedule/{enterpriseId}/type/{type}` | Admin -> Rules |
-| ❌ | GET | `/REST/webhook/{enterpriseId}` | Admin -> Rules -> Webhooks |
-| ❌ | GET | `/REST/site/analytics/enterprise/{enterpriseId}/licensed` | Views, Search, Rules |
-| 🚫 | POST | `/REST/rule/enterprise/{enterpriseId}/...` (CRUD) | Rule wizard (not triggered) |
-| 🚫 | POST | `/REST/webhook` / `/webhook/update` | Webhook CRUD |
+| uncovered | POST | `/REST/rule/enterprise/{enterpriseId}/search` | Admin -> Rules + dashboard |
+| uncovered | GET | `/REST/analyticschedule/{enterpriseId}/type/{type}` | Admin -> Rules |
+| uncovered | GET | `/REST/webhook/{enterpriseId}` | Admin -> Rules -> Webhooks |
+| uncovered | GET | `/REST/site/analytics/enterprise/{enterpriseId}/licensed` | Views, Search, Rules |
+| untriggered | POST | `/REST/rule/enterprise/{enterpriseId}/...` (CRUD) | Rule wizard (not triggered) |
+| untriggered | POST | `/REST/webhook` / `/webhook/update` | Webhook CRUD |
 
 ## Events
 
 | Status | Method | Path | Where surfaced |
 |---|---|---|---|
-| ✅ | POST | `/REST/site/search` | `test_platform_apis.py`, `test_search_api.py` (person/vehicle payloads) |
-| ❌ | POST | `/REST/site/search/event` | Events page -> Search button |
-| ❌ | GET | `/REST/das/event/type/{typeId}/limit/{n}` | LPR page |
+| covered | POST | `/REST/site/search` | `test_platform_apis.py`, `test_search_api.py` (person/vehicle payloads) |
+| uncovered | POST | `/REST/site/search/event` | Events page -> Search button |
+| uncovered | GET | `/REST/das/event/type/{typeId}/limit/{n}` | LPR page |
 
 ## Insights / dashboards / widgets
 
 | Status | Method | Path | Where surfaced |
 |---|---|---|---|
-| ✅ | GET | `/REST/dashboard/site/{siteId}/status` | `test_platform_apis.py` |
-| ✅ | GET | `/REST/dashboard/sharedwidgets/{customerId}/data` | `test_platform_apis.py` |
-| ❌ | GET | `/REST/dashboard/widget/mywidgets/data` | Insights |
-| ❌ | GET | `/REST/dashboard/getmydashboards/data` | Insights |
-| ❌ | GET | `/REST/dashboard/shareddashboards/{customerId}/data` | Insights |
-| ❌ | GET | `/REST/dashboard/thumbnail/{dashboardId}` | Insights |
-| ❌ | GET | `/REST/dashboard/widget/thumbnail/{widgetId}` | Insights / LPR |
-| 🚫 | PUT | `/REST/dashboard/widget/update/{widgetId}` | Widget edit |
+| covered | GET | `/REST/dashboard/site/{siteId}/status` | `test_platform_apis.py` |
+| covered | GET | `/REST/dashboard/sharedwidgets/{customerId}/data` | `test_platform_apis.py` |
+| uncovered | GET | `/REST/dashboard/widget/mywidgets/data` | Insights |
+| uncovered | GET | `/REST/dashboard/getmydashboards/data` | Insights |
+| uncovered | GET | `/REST/dashboard/shareddashboards/{customerId}/data` | Insights |
+| uncovered | GET | `/REST/dashboard/thumbnail/{dashboardId}` | Insights |
+| uncovered | GET | `/REST/dashboard/widget/thumbnail/{widgetId}` | Insights / LPR |
+| untriggered | PUT | `/REST/dashboard/widget/update/{widgetId}` | Widget edit |
 
 ## Maps
 
 | Status | Method | Path | Where surfaced |
 |---|---|---|---|
-| ❌ | GET | `/REST/staticmap/{siteId}/metadata` | Maps + Admin dashboard |
-| ❌ | GET | `/REST/staticmap/{siteId}/enc/{encId}/thumbnail` | Maps + Admin dashboard |
-| 🚫 | POST / PUT | `/REST/staticmap/{siteId}` and `/addchannel`, `/addchannels`, `/direction` | Map edit |
+| uncovered | GET | `/REST/staticmap/{siteId}/metadata` | Maps + Admin dashboard |
+| uncovered | GET | `/REST/staticmap/{siteId}/enc/{encId}/thumbnail` | Maps + Admin dashboard |
+| untriggered | POST / PUT | `/REST/staticmap/{siteId}` and `/addchannel`, `/addchannels`, `/direction` | Map edit |
 
 ## Media
 
 | Status | Method | Path | Where surfaced |
 |---|---|---|---|
-| ❌ | GET | `/REST/media/storage/vault` | Media |
-| ❌ | POST | `/REST/media/search/enc` | Media (clips, folders, vault, My Media all share this) |
-| 🚫 | PUT | `/REST/media/vault/{mediaid}` | Add to vault |
+| uncovered | GET | `/REST/media/storage/vault` | Media |
+| uncovered | POST | `/REST/media/search/enc` | Media (clips, folders, vault, My Media all share this) |
+| untriggered | PUT | `/REST/media/vault/{mediaid}` | Add to vault |
 
 ## LPR
 
 | Status | Method | Path | Where surfaced |
 |---|---|---|---|
-| ❌ | GET | `/REST/lpr/site/{siteId}/location/tree` | LPR |
-| ❌ | GET | `/REST/lpr/enterprise/{enterpriseId}/widget/data` | LPR |
+| uncovered | GET | `/REST/lpr/site/{siteId}/location/tree` | LPR |
+| uncovered | GET | `/REST/lpr/enterprise/{enterpriseId}/widget/data` | LPR |
 
 ## Licenses (Admin -> Licenses)
 
 | Status | Method | Path | Where surfaced |
 |---|---|---|---|
-| ❌ | GET | `/REST/user/license/available/{enterpriseId}/{email}` | Admin -> Licenses (default tab) |
-| ❌ | GET | `/REST/user/license/overview/{enterpriseId}` | Admin -> Licenses |
-| ❌ | GET | `/REST/user/license/assigned/{enterpriseId}/{email}` | Admin -> Assigned Licenses sub-tab |
-| ❌ | GET | `/REST/enterprise/{enterpriseId}/withlogo` | Admin -> Licenses |
-| 🚫 | POST | `/REST/user/license/feature/assignment` | License assign action |
-| 🚫 | POST | `/REST/user/license/feature/update/assignment/{action}` | License unassign/re-assign |
+| uncovered | GET | `/REST/user/license/available/{enterpriseId}/{email}` | Admin -> Licenses (default tab) |
+| uncovered | GET | `/REST/user/license/overview/{enterpriseId}` | Admin -> Licenses |
+| uncovered | GET | `/REST/user/license/assigned/{enterpriseId}/{email}` | Admin -> Assigned Licenses sub-tab |
+| uncovered | GET | `/REST/enterprise/{enterpriseId}/withlogo` | Admin -> Licenses |
+| untriggered | POST | `/REST/user/license/feature/assignment` | License assign action |
+| untriggered | POST | `/REST/user/license/feature/update/assignment/{action}` | License unassign/re-assign |
 
 ## Platform / misc
 
 | Status | Method | Path | Where surfaced |
 |---|---|---|---|
-| ❌ | GET | `/REST/favourite/getallfavourites` | Global (LPR + others) |
-| ❌ | GET | `/REST/platform/deployment` | Admin -> General |
+| uncovered | GET | `/REST/favourite/getallfavourites` | Global (LPR + others) |
+| uncovered | GET | `/REST/platform/deployment` | Admin -> General |
 
 ## Not REST (excluded from API smoke planning)
 
@@ -155,8 +155,8 @@ Endpoint pattern: `firestore.googleapis.com/.../Listen/channel?...`
    - **Quick & local:** open Chrome DevTools -> Network -> filter `v-apiserver` -> click through the feature -> Save as HAR.
    - **Interactive exploration:** use Bruno to poke an endpoint and refine the request shape before promoting it to a smoke test. See [BRUNO_GUIDE.md](./BRUNO_GUIDE.md).
    - **Programmatic:** in the DevTools console, patch `window.fetch` to log every REST call, then click through the feature and read the log.
-3. Diff against this catalog. Add new rows under the right section with status `❌` and a one-line "Where surfaced" note.
-4. When a smoke test lands, flip status to ✅ and link the test file/function.
+3. Diff against this catalog. Add new rows under the right section with status `uncovered` and a one-line "Where surfaced" note.
+4. When a smoke test lands, flip status to covered and link the test file/function.
 5. Bump the "Last updated" date.
 
 ## Tooling at a glance

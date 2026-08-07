@@ -12,11 +12,11 @@ This guide explains what Bruno is, why we use it alongside Playwright, and how t
 
 | Concern | Bruno | Postman | Insomnia |
 |---|---|---|---|
-| Collections stored as files | ✅ `.bru` files in git | ❌ Cloud sync (free tier limited) | ⚠️ Partial |
-| Works fully offline | ✅ | ❌ requires sign-in | ⚠️ |
-| Per-env vars in repo | ✅ | ⚠️ in cloud | ⚠️ |
-| Free for teams | ✅ open source | ❌ paid tiers above 3 users | ❌ paid tiers |
-| Code-review friendly | ✅ diff plain text | ❌ binary export | ❌ |
+| Collections stored as files | yes: `.bru` files in git | no: Cloud sync (free tier limited) | partial: Partial |
+| Works fully offline | yes: | no: requires sign-in | partial: |
+| Per-env vars in repo | yes: | partial: in cloud | partial: |
+| Free for teams | yes: open source | no: paid tiers above 3 users | no: paid tiers |
+| Code-review friendly | yes: diff plain text | no: binary export | no: |
 
 If your team is already deep into Postman, Postman is fine - the workflow below maps 1:1. We just don't want a cloud login to be a prerequisite for running a smoke test interactively.
 

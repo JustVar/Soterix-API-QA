@@ -1,6 +1,6 @@
 # API Surfaces, Auth Contracts, and Environments
 
-Last verified: **2026-08-05**
+Last verified: **2026-08-08**
 
 There are **two separate APIs** behind the same hostnames. They have different
 base paths, different authentication, and different availability per environment.
@@ -139,9 +139,9 @@ running catalog.
 
 | Env | Host | Internal API | Integration API | Account |
 |---|---|---|---|---|
-| QA | `https://qa.example.invalid` | ✅ verified | ✅ verified | `qa@soterixsystems.com` |
-| Stage | `https://staging.example.invalid` | ✅ verified | ❌ 404 | `qa@soterixsystems.com` |
-| QA production box | `https://app.example.invalid` | ⚠️ not yet tested | ❌ 404 | `hardware-lab@soterixsystems.com` |
+| QA | `https://qa.example.invalid` | verified | verified | `qa@soterixsystems.com` |
+| Stage | `https://staging.example.invalid` | verified | 404 (not deployed) | `qa@soterixsystems.com` |
+| QA production box | `https://app.example.invalid` | verified 2026-08-08 | 404 (not deployed) | `hardware-lab@soterixsystems.com` |
 
 Config lives in `config/env/{qa,stage,prod}.py`; hosts there are authoritative.
 
@@ -171,7 +171,5 @@ Site topology changes; prefer the discovery fixtures over hardcoded ids.
 ## Open items
 
 - Obtain and store the integration API key (`VSAAS_INTEGRATION_KEY`).
-- Set the `hardware-lab@soterixsystems.com` password and verify internal-API login
-  against `app.example.invalid`.
 - Integration API is QA-only; re-check stage/prod when it is rolled out.
 - `/REST/sso/login` parameter contract is still unknown.

@@ -26,7 +26,7 @@ reference; use `tools/discover_cameras.py` for the live topology.
 - Session cached in `.session_cache` (8 hour TTL)
 
 > **Correction (2026-08-05).** This file previously stated that "API login
-> returns 400 for qa-lab account (expected)" and that the suite "falls back to UI
+> returns 400 for the QA account (expected)" and that the suite "falls back to UI
 > login via Playwright". That was a bug being recorded as intended behaviour. The
 > 400 was caused by calling the captcha-gated `/REST/central/user/auth/login`
 > with a plaintext password. The UI fallback is now opt-in only

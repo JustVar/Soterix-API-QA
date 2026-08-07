@@ -3,7 +3,7 @@
 Living catalog of every REST endpoint the NexaiQ-Core SPA exercises, with smoke-test coverage status. Source of truth: live network capture on `staging.example.invalid`. Vendor swagger is currently stale (per 2026-05-15 audit) - trust this doc over swagger until a refreshed spec is delivered.
 
 Last updated: **2026-05-15**
-Capture method: **live network capture in Chrome DevTools, signed in as `qa@soterixsystems.com`**
+Capture method: **live network capture in Chrome DevTools, signed in as a QA account**
 
 ## Base path
 

@@ -31,7 +31,7 @@ class UserAPI(BaseAPIClient):
           "result": [{
             "streamer": "webrtc",
             "JSESSIONID": "cf6fe...",
-            "userId": "qa@soterixsystems.com"
+            "userId": "user@example.com"
           }]
         }
         """

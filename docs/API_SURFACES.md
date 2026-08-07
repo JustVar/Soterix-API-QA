@@ -139,32 +139,20 @@ running catalog.
 
 | Env | Host | Internal API | Integration API | Account |
 |---|---|---|---|---|
-| QA | `https://qa.example.invalid` | verified | verified | `qa@soterixsystems.com` |
-| Stage | `https://staging.example.invalid` | verified | 404 (not deployed) | `qa@soterixsystems.com` |
-| QA production box | `https://app.example.invalid` | verified 2026-08-08 | 404 (not deployed) | `hardware-lab@soterixsystems.com` |
+| QA | `https://qa.example.invalid` | verified | verified | your own |
+| Stage | `https://staging.example.invalid` | verified | 404 (not deployed) | your own |
+| QA production box | `https://app.example.invalid` | verified 2026-08-08 | 404 (not deployed) | `hardware-lab@soterixsystems.com` (shared) |
 
 Config lives in `config/env/{qa,stage,prod}.py`; hosts there are authoritative.
 
-### Two accounts, one QA URL
+### Test data
 
-`https://qa.example.invalid` serves **two different backends** depending on
-which account signs in:
+Sites and channels differ per account, so the suite discovers them at run time.
+Use the discovery fixtures (`test_site_id`, `test_channel_ids`) rather than
+hardcoding ids. Set `TEST_SITE_ID` in `.env` only to pin a specific site your
+account can reach; a site id your account cannot reach returns 400.
 
-- `qa@soterixsystems.com` - the `india` box in `config/env/qa.py`.
-  Hosted elsewhere, fully populated. **Currently active**, and what the suite uses.
-- `qa@soterixsystems.com` - the locally hosted box. Not fully set up yet.
-
-So `base_url` alone does not identify the environment under test - the *account*
-does. Switch by repointing `QA_USER` / `QA_PASSWORD` in `.env`; both accounts'
-passwords are stored there under their own names.
-
-### Known-good QA test data (account: justin.varughese)
-
-- Sites: `16, 17, 105, 109, 111` - `enterpriseId` `2`
-- Channel counts: site 17 -> 6, site 16 -> 5, site 111 -> 2, site 109 -> 1, site 105 -> 0
-- `TEST_SITE_ID=17` (site `110` is **not** valid for this account and returns 400)
-
-Site topology changes; prefer the discovery fixtures over hardcoded ids.
+QA testing happens mainly on the india box. Sign in with your own account.
 
 ---
 

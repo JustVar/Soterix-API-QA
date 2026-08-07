@@ -1,0 +1,23 @@
+# Virtual environments
+venv/
+.venv/
+
+# Environment files (credentials!) -- template is the only tracked one
+.env
+.env.*
+!.env.template
+
+# Session/auth caches
+.session_cache
+
+# Test output
+reports/
+logs/
+.pytest_cache/
+
+# Python
+__pycache__/
+*.pyc
+
+# Lint caches
+.ruff_cache/

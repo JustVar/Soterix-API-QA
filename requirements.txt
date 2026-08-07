@@ -1,0 +1,12 @@
+# Soterix-API-QA -- deliberately browser-free.
+# Adding playwright/pytest-playwright here would defeat the point of this repo:
+# API auth is plain HTTP (docs/API_SURFACES.md) and must stay that way.
+pytest
+requests
+python-dotenv
+pytest-html
+jsonschema
+PyYAML
+
+# Linting / formatting
+ruff>=0.15

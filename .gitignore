@@ -21,3 +21,6 @@ __pycache__/
 
 # Lint caches
 .ruff_cache/
+
+# Maintainer-local working notes (not part of the shared repo)
+docs/local/

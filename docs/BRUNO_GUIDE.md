@@ -28,7 +28,7 @@ If your team is already deep into Postman, Postman is fine - the workflow below 
 ## Where the collection lives
 
 ```
-tests/api/bruno/
+tests/bruno/
 ├── bruno.json              # collection manifest
 ├── environments/
 │   ├── staging.bru         # https://staging.example.invalid
@@ -55,7 +55,7 @@ The collection is **not yet committed** - see "Bootstrapping the collection" bel
 
 ## Bootstrapping the collection (one-time, ~15 minutes)
 
-1. Open Bruno -> **Create Collection** -> choose `tests/api/bruno/` inside this repo.
+1. Open Bruno -> **Create Collection** -> choose `tests/bruno/` inside this repo.
 2. **Add an environment** named `staging`:
    - `baseUrl` = `https://staging.example.invalid/v-apiserver`
    - `enterpriseId` = `1`
@@ -64,7 +64,7 @@ The collection is **not yet committed** - see "Bootstrapping the collection" bel
 4. Add a **Pre-request script** at the collection level that logs in and stores `JSESSIONID`:
 
    ```js
-   // tests/api/bruno/scripts/login.js (pseudo - adapt to Bruno scripting syntax)
+   // tests/bruno/scripts/login.js (pseudo - adapt to Bruno scripting syntax)
    const res = await bru.fetch({
      url: `${bru.env.baseUrl}/REST/central/user/auth/login`,
      method: "POST",
@@ -86,7 +86,7 @@ The collection is **not yet committed** - see "Bootstrapping the collection" bel
 3. **Replace hardcoded values** with `{{baseUrl}}`, `{{enterpriseId}}`, `{{siteId}}` etc.
 4. **Send** - confirm 200 + sane response shape.
 5. **Save under the appropriate folder** (Auth, Sites, Rules...) so others can re-use it.
-6. **Promote to Playwright** - copy the path, method, and payload shape into a new `test_<area>_apis.py` in `tests/api/smoke/`. See `docs/API_ENDPOINTS.md` for the master endpoint catalog.
+6. **Promote to a smoke test** - copy the path, method, and payload shape into a new `test_<area>_apis.py` in `tests/smoke/`. See `docs/API_ENDPOINTS.md` for the master endpoint catalog.
 
 ### Debugging a failing smoke test
 
@@ -106,7 +106,7 @@ The collection is **not yet committed** - see "Bootstrapping the collection" bel
 1. **Never commit credentials.** Use Bruno's secret env vars or a gitignored `.env.local`. The `.bru` files in `environments/` should only contain non-secret host URLs and enterprise IDs.
 2. **Don't run destructive requests against prod.** Bruno doesn't have built-in guardrails - be careful with POST/PUT/DELETE in the `prod` environment.
 3. **Keep the collection aligned with `docs/API_ENDPOINTS.md`.** When you add a Bruno request, add or update the corresponding row in the endpoint catalog so the two stay in sync.
-4. **Bruno is exploratory, Playwright is authoritative.** A green Bruno request does not constitute test coverage - only a smoke test in `tests/api/smoke/` does.
+4. **Bruno is exploratory, the pytest suite is authoritative.** A green Bruno request does not count as test coverage - only a smoke test in `tests/smoke/` does.
 
 ## What about running Bruno in CI?
 

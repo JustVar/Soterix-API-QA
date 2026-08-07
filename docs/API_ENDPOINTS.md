@@ -21,7 +21,7 @@ Auth: JSESSIONID cookie (not JWT). See `api_clients/auth_helper.py`.
 
 ## Status legend
 
-- ✅ **covered** - has a dedicated test in `tests/api/smoke/`
+- ✅ **covered** - has a dedicated test in `tests/smoke/`
 - 🔄 **in-progress** - Tier 1 stub written, assertions need fleshing out
 - ❌ **uncovered** - observed live, no test
 - 🚫 **untriggered** - likely exists (write path, lazy panel) but not yet captured
@@ -163,8 +163,8 @@ Endpoint pattern: `firestore.googleapis.com/.../Listen/channel?...`
 
 | Tool | What it does | When to use |
 |---|---|---|
-| **Playwright** (`tests/api/smoke/`) | Authoritative automated API tests, runs in CI | Always - this is the source of truth for coverage |
-| **Bruno** (`tests/api/bruno/`) | Human-friendly request collection, plain-file checked into git | Exploring a new endpoint, debugging a failing smoke test, sharing a repro with the platform team - see [BRUNO_GUIDE.md](./BRUNO_GUIDE.md) |
+| **pytest smoke suite** (`tests/smoke/`) | The authoritative automated API tests | Always - this is the source of truth for coverage |
+| **Bruno** (`tests/bruno/`) | Human-friendly request collection, plain-file checked into git | Exploring a new endpoint, debugging a failing smoke test, sharing a repro with the platform team - see [BRUNO_GUIDE.md](./BRUNO_GUIDE.md) |
 | **Chrome DevTools network capture** | Capturing what the SPA actually calls | First step in discovering an undocumented endpoint |
 
 Playwright is the test runtime. Bruno is for exploration; it is not a CI dependency.

@@ -20,7 +20,7 @@ the single reference for both.
 
 ## 1. Internal API (`/v-apiserver`)
 
-This is what the existing suite in `tests/api/` targets, and what the SPA itself uses.
+This is what the suite in `tests/smoke/` targets, and what the SPA itself uses.
 
 ### Login - the only path that works from an API client
 

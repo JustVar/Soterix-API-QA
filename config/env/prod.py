@@ -4,6 +4,10 @@ config = {
     "base_url": "https://app.example.invalid",
     "api_base_url": "https://app.example.invalid/v-apiserver",
 
+    # Third-party surface: not deployed here (404 as of 2026-08-05).
+    # Integration tests skip when this is None.
+    "integration_api_base_url": None,
+
     # Safety flags - production is READ-ONLY
     "allow_write": False,
     "allow_delete": False,

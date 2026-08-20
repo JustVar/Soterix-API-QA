@@ -1,0 +1,30 @@
+name: collect-gate
+
+# Cheap merge gate: proves a change breaks no suite's imports or fixture
+# wiring. Needs no credentials and sends no live traffic - collection and
+# setup-plan never execute tests, and the two suites it does run are
+# offline (plugin unit tests) or self-skipping (integration scaffold
+# without a key).
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+      - name: Imports and fixture wiring, both suites
+        run: |
+          pytest tests/ --collect-only -q
+          pytest tests/ --setup-plan -q
+      - name: Offline suites
+        run: |
+          pytest tests/plugins
+          pytest tests/integration_api

@@ -4,6 +4,10 @@ config = {
     "base_url": "https://staging.example.invalid",
     "api_base_url": "https://staging.example.invalid/v-apiserver",
 
+    # Third-party surface: not deployed here (404 as of 2026-08-05).
+    # Integration tests skip when this is None.
+    "integration_api_base_url": None,
+
     # Safety flags - staging allows writes but not deletes
     "allow_write": True,
     "allow_delete": False,

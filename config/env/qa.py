@@ -4,6 +4,10 @@ config = {
     "base_url": "https://qa.example.invalid",
     "api_base_url": "https://qa.example.invalid/v-apiserver",
 
+    # Third-party surface. Static key auth via VSAAS_INTEGRATION_KEY in .env.
+    # QA is the only environment that has it (stage/prod carry None).
+    "integration_api_base_url": "https://qa.example.invalid/v-integration-api",
+
     # Safety flags
     "allow_write": True,
     "allow_delete": True,

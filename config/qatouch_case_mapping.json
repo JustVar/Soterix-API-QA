@@ -1,7 +1,6 @@
 {
   "version": 1,
   "project_key": "JlW1",
-  "total_mapped": 13,
   "mappings": {
     "tests/smoke/test_camera_apis.py::test_get_camera_tree": {
       "case_key": "gQxmgr",

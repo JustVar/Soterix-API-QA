@@ -1,14 +1,14 @@
 # API Smoke Tests
 
 ## Overview
-This folder contains API smoke tests aimed at quickly validating core platform functionality across environments. The suite includes 16 tests covering user/session endpoints, platform-level dashboard and camera endpoints, and search APIs.
+This folder contains API smoke tests aimed at quickly validating core platform functionality across environments. The suite currently collects 33 tests covering auth, user/session, admin, dashboard, camera, events, and search endpoints. Suite fixtures live in `conftest.py` in this folder.
 
 Scope:
 - Lightweight smoke checks (status codes, basic response shape)
 - Dynamic discovery of site and enterprise IDs via fixtures
 - Tests intended to be fast and safe to run against test/QA environments
 
-## Tests (16)
+## Core tests (original 16; later files follow the same pattern)
 1. `test_get_user_session` - GET current user session; validate session response structure via `user_api.validate_session_response()`.
 2. `test_get_user_roles` - GET user roles; assert response type (list/dict).
 3. `test_get_enterprise_id_dynamic` - Validate dynamic enterprise ID derived from site status (fixture `test_enterprise_id`).

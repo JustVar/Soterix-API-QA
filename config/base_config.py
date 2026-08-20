@@ -9,12 +9,21 @@ from dotenv import load_dotenv
 # Load .env if present (lets you set AUTO_USER/AUTO_PASSWORD, etc.)
 load_dotenv()
 
-# Logging setup
-LOG_DIR = Path("logs")
+# Env-resolution log. A named logger with its own handler keeps the process
+# root logger untouched, so each test suite can configure its own logging.
+# The path is anchored to the repo root so runs started from a subdirectory
+# do not scatter logs/ directories around.
+LOG_DIR = Path(__file__).resolve().parent.parent / "logs"
 LOG_DIR.mkdir(parents=True, exist_ok=True)
 LOG_FILE = LOG_DIR / "env_config.log"
-logging.basicConfig(filename=str(LOG_FILE), level=logging.INFO,
-                    format="%(asctime)s [%(levelname)s] %(message)s")
+_log = logging.getLogger("env_config")
+if not _log.handlers:
+    _handler = logging.FileHandler(LOG_FILE)
+    _handler.setFormatter(
+        logging.Formatter("%(asctime)s [%(levelname)s] %(message)s"))
+    _log.addHandler(_handler)
+    _log.setLevel(logging.INFO)
+    _log.propagate = False
 
 # Map aliases to real environment modules
 ENV_ALIAS = {
@@ -51,7 +60,7 @@ def load_config():
     if not isinstance(cfg, dict):
         raise RuntimeError(f"{module_path} must define a dict named 'config'")
 
-    logging.info(f"[ENV RESOLVED] ENV='{env}' APP_TYPE='{app_type}' -> {module_path} | base_url={cfg.get('base_url')}")
+    _log.info(f"[ENV RESOLVED] ENV='{env}' APP_TYPE='{app_type}' -> {module_path} | base_url={cfg.get('base_url')}")
     return cfg
 
 # Helpers to expose box/credential and safety checks
@@ -88,6 +97,8 @@ def _get_env_module():
     env = (os.environ.get("ENV") or "qa").strip().lower()
     app_type = (os.environ.get("APP_TYPE") or "customer").strip().lower()
     module_path = ENV_ALIAS.get(env)
+    if not module_path:
+        raise RuntimeError(f"Unknown ENV '{env}'. Valid: {', '.join(sorted(ENV_ALIAS))}")
     if app_type == "partner":
         module_path = module_path + "_pat"
     return importlib.import_module(module_path)

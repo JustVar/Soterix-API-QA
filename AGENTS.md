@@ -24,6 +24,13 @@ Hard rules:
   test files.
 - UI automation belongs in the sibling repo Soterix-WebApp-QA. Do not add
   it here.
+- The two test suites stay isolated. Internal-suite fixtures live in
+  `tests/smoke/conftest.py`; integration-suite fixtures live in
+  `tests/integration_api/conftest.py`. The root `conftest.py` stays
+  minimal. `api_clients/` (BaseAPIClient included) is internal-suite
+  plumbing: never reuse or edit it for the integration suite.
+- Merges between the two GitHub remotes follow `docs/MERGE_RUNBOOK.md`.
+  Never force-push main.
 - Never commit `.env` or any credential.
 - Before you edit a file you did not create, read it fully and keep its
   intent. Propose a large rewrite instead of applying it.

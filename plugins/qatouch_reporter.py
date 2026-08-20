@@ -143,7 +143,7 @@ class QATouchReporter:
         """Load nodeid -> case_key mapping from JSON file."""
         if not MAPPING_PATH.exists():
             log.warning(f'Mapping file not found: {MAPPING_PATH}')
-            log.warning('Run: python tools/qatouch_mapper.py build')
+            log.warning('The mapping file is hand-edited in this repo; see AGENTS.md')
             return {}
 
         with open(MAPPING_PATH) as f:

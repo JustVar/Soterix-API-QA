@@ -14,7 +14,15 @@ from jsonschema import validate as jsonschema_validate, ValidationError
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 LOG_PATH = os.path.join(ROOT, "logs", "api_requests.log")
 os.makedirs(os.path.dirname(LOG_PATH), exist_ok=True)
-logging.basicConfig(filename=LOG_PATH, level=logging.INFO, format="%(asctime)s %(message)s")
+# Named logger with its own handler: keeps the process root logger untouched
+# so other suites in this repo can configure their own logging.
+_logger = logging.getLogger("api_requests")
+if not _logger.handlers:
+    _handler = logging.FileHandler(LOG_PATH)
+    _handler.setFormatter(logging.Formatter("%(asctime)s %(message)s"))
+    _logger.addHandler(_handler)
+    _logger.setLevel(logging.INFO)
+    _logger.propagate = False
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -62,7 +70,7 @@ class BaseAPIClient:
         return h
 
     def _log(self, method: str, path: str, status: int, elapsed: float):
-        logging.info(f"{method} {path} -> {status} ({elapsed:.3f}s)")
+        _logger.info(f"{method} {path} -> {status} ({elapsed:.3f}s)")
 
     def _request(self, method: str, path: str, **kwargs) -> requests.Response:
         url = f"{self.base_url}{path}"

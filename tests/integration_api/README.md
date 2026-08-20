@@ -1,19 +1,71 @@
-# Integration API tests (scaffold)
+# Integration API tests
 
-Target: the third-party surface at `/v-integration-api` - read-only GET
-endpoints authenticated by a static `x-vsaas-key` header. The Swagger UI is
-the source of truth for the endpoint list (it grows over time):
+Target: the third-party surface at `/v-integration-api` - GET endpoints
+authenticated by a static `x-vsaas-key` header. The Swagger UI is the source
+of truth for the endpoint list (it grows over time):
 <https://qa.example.invalid/v-integration-api/swagger-ui/index.html>
 
-Status: **not built yet.** Blocked on an API key being issued - store it as
-`VSAAS_INTEGRATION_KEY` in `.env` when it arrives.
+Status: **scaffold.** Blocked on an API key being issued - store it as
+`VSAAS_INTEGRATION_KEY` in `.env` when it arrives. `conftest.py` and
+`test_scaffold.py` here already wire the fixtures; the suite skips cleanly
+until the key exists.
 
-Notes for whoever builds this out:
+## Where everything goes
 
-- No session, no login, no expiry: a client here is a `requests.Session` with
-  one header. Don't reuse `api_clients/auth_helper.py` - it's for the internal
-  `/v-apiserver` surface.
-- The surface exists on QA only (stage/prod 404 as of 2026-08-05) - gate tests
-  accordingly.
-- All endpoints are read-only, so these tests are safe against any environment
-  that exposes the surface.
+The whole build-out lives in this directory. That is what keeps the two
+suites in this repo from breaking each other:
+
+- Fixtures: `tests/integration_api/conftest.py` (already started). Never add
+  fixtures to the root `conftest.py`.
+- Client code: `tests/integration_api/client.py` (create it when needed). A
+  client here is a `requests.Session` with one header - the
+  `integration_session` fixture may be all you ever need.
+- Tests: `tests/integration_api/test_*.py`. Mark them
+  `@pytest.mark.integration` (registered in `pytest.ini`).
+- Config: the per-env base URL is already seeded as
+  `integration_api_base_url` in `config/env/*.py`. The key comes from
+  `VSAAS_INTEGRATION_KEY` in `.env` (slot exists in `.env.template`).
+
+With that layout, building this suite touches zero shared files, and the
+internal suite's plumbing cannot break your runs.
+
+## What NOT to reuse
+
+- `api_clients/auth_helper.py` - internal `/v-apiserver` login (session
+  cookie, expiry). This surface has no session and no login.
+- `api_clients/base_api_client.py` - also internal-only, three ways: it
+  force-appends `/v-apiserver` to any base URL, its headers speak only
+  JSESSIONID-cookie or Bearer (a hex key passed as `token` would be sent as
+  a session cookie), and its schema validation loads internal-API models
+  from `schemas/responses/`. Do not subclass it and do not edit it to fit -
+  every internal test depends on its current behavior.
+
+## Conventions
+
+- Missing key or absent surface means **skip, not fail**. The fixtures in
+  `conftest.py` already do this; keep that behavior so whole-tree runs stay
+  green on machines without the key. Treat an empty env var as unset.
+- Do not invent a new `ENV` value for this surface (it breaks the shared
+  config for everyone). Gate on `env_config.get("integration_api_base_url")`
+  instead - it is `None` outside QA.
+- Run only this suite while building:
+  `pytest tests/integration_api --html=reports/integration.html --self-contained-html`.
+  A bare `pytest` also runs the internal suite, which needs credentials you
+  do not have and sends live traffic to the shared QA tenant.
+- The root `conftest.py` defines `env_config` and `base_url` for every
+  suite. Those two names are taken; name your fixtures distinctly.
+- QA Touch mapping is optional and lives in
+  `config/qatouch_case_mapping.json` (hand-edited, never markers in test
+  files). Add entries only when you want results uploaded.
+
+## Surface notes
+
+- The surface exists on QA only (stage/prod 404 as of 2026-08-05); the
+  `integration_base_url` fixture handles that.
+- Endpoints are read-only GETs today, so tests are safe against any
+  environment that exposes the surface. That claim has an expiry date:
+  NC-20287 (Swagger - Event API) plans endpoints where a partner writes
+  badge events into the platform. Re-check before assuming a new endpoint
+  is safe to hit anywhere.
+- Merging your work back: follow `docs/MERGE_RUNBOOK.md` (one-time clone
+  check, branch and PR flow, no force-push).

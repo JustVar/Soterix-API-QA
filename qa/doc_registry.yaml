@@ -15,7 +15,7 @@
 - doc_id: QA-API-AUTH-01
   section: I. API
   area: Authentication (central + SSO login)
-  path: tests/smoke/test_auth_apis.py
+  path: tests/internal_api/test_auth_apis.py
   owner: JV
   deployment: After FT
   status: active
@@ -23,7 +23,7 @@
 - doc_id: QA-API-PLT-01
   section: I. API
   area: Platform APIs (session, dashboard, widgets, camera tree)
-  path: tests/smoke/test_platform_apis.py
+  path: tests/internal_api/test_platform_apis.py
   owner: JV
   deployment: After FT
   status: active
@@ -31,7 +31,7 @@
 - doc_id: QA-API-USR-01
   section: I. API
   area: User session / roles / enterprise discovery
-  path: tests/smoke/test_user_apis.py
+  path: tests/internal_api/test_user_apis.py
   owner: JV
   deployment: After FT
   status: active
@@ -39,7 +39,7 @@
 - doc_id: QA-API-CAM-01
   section: I. API
   area: Camera tree + snapshots
-  path: tests/smoke/test_camera_apis.py
+  path: tests/internal_api/test_camera_apis.py
   owner: JV
   deployment: After FT
   status: active
@@ -47,7 +47,7 @@
 - doc_id: QA-API-DSH-01
   section: I. API
   area: Dashboard site status + shared widgets
-  path: tests/smoke/test_dashboard_apis.py
+  path: tests/internal_api/test_dashboard_apis.py
   owner: JV
   deployment: After FT
   status: active
@@ -55,7 +55,7 @@
 - doc_id: QA-API-SRC-01
   section: I. API
   area: Search (person, vehicle)
-  path: tests/smoke/test_search_api.py
+  path: tests/internal_api/test_search_api.py
   owner: JV
   deployment: After FT
   status: active
@@ -63,7 +63,7 @@
 - doc_id: QA-API-ADM-USR-01
   section: I. API
   area: Admin -> Users (site/user, enterprise users, profile detail)
-  path: tests/smoke/test_admin_users_apis.py
+  path: tests/internal_api/test_admin_users_apis.py
   owner: JV
   deployment: After FT
   status: active
@@ -71,7 +71,7 @@
 - doc_id: QA-API-ADM-STE-01
   section: I. API
   area: Admin -> Sites (site details, edge versions)
-  path: tests/smoke/test_admin_sites_apis.py
+  path: tests/internal_api/test_admin_sites_apis.py
   owner: JV
   deployment: After FT
   status: active
@@ -79,7 +79,7 @@
 - doc_id: QA-API-ADM-RUL-01
   section: I. API
   area: Admin -> Rules (rule search, webhooks, analytic schedules, licensed analytics)
-  path: tests/smoke/test_admin_rules_apis.py
+  path: tests/internal_api/test_admin_rules_apis.py
   owner: JV
   deployment: After FT
   status: active
@@ -87,7 +87,7 @@
 - doc_id: QA-API-EVT-01
   section: I. API
   area: Events search (rule-type + site filtered)
-  path: tests/smoke/test_events_apis.py
+  path: tests/internal_api/test_events_apis.py
   owner: JV
   deployment: After FT
   status: active
@@ -99,5 +99,5 @@
 #
 # Backfill these sections as the spreadsheet is reconciled with the repo.
 # Until backfilled, the corresponding test files won't be enforced by
-# check_doc_ids.py beyond the API smoke directory.
+# check_doc_ids.py beyond the internal-API directory.
 # ─────────────────────────────────────────────────────────────────────

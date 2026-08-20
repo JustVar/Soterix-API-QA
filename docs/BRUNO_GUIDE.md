@@ -1,11 +1,11 @@
 # Bruno - API Exploration Guide for QA
 
-This guide explains what Bruno is, why we use it alongside Playwright, and how to drive the Soterix VSaaS REST API with it.
+This guide explains what Bruno is, why we use it alongside the pytest suite, and how to drive the Soterix VSaaS REST API with it.
 
 ## TL;DR
 
-- **Playwright runs the automated API tests.** No external tool needed at test runtime.
-- **Bruno is for humans** - interactive poking, response inspection, sharing endpoint collections, prototyping a request before promoting it into a Playwright smoke test.
+- **pytest runs the automated API tests.** No external tool needed at test runtime.
+- **Bruno is for humans** - interactive poking, response inspection, sharing endpoint collections, prototyping a request before promoting it into a pytest test.
 - Bruno collections live as **plain files in the repo** (no cloud account, no sync drift). Anyone can clone the repo and open the collection.
 
 ## Why Bruno instead of Postman or Insomnia?
@@ -23,7 +23,7 @@ If your team is already deep into Postman, Postman is fine - the workflow below 
 ## Install
 
 - **Desktop app:** download from <https://www.usebruno.com/downloads>.
-- **CLI (optional, for CI):** `npm install -g @usebruno/cli` - run a Bruno collection from the command line, useful for ad-hoc smoke runs outside Playwright.
+- **CLI (optional, for CI):** `npm install -g @usebruno/cli` - run a Bruno collection from the command line, useful for ad-hoc smoke runs outside pytest.
 
 ## Where the collection lives
 
@@ -86,7 +86,7 @@ The collection is **not yet committed** - see "Bootstrapping the collection" bel
 3. **Replace hardcoded values** with `{{baseUrl}}`, `{{enterpriseId}}`, `{{siteId}}` etc.
 4. **Send** - confirm 200 + sane response shape.
 5. **Save under the appropriate folder** (Auth, Sites, Rules...) so others can re-use it.
-6. **Promote to a smoke test** - copy the path, method, and payload shape into a new `test_<area>_apis.py` in `tests/smoke/`. See `docs/API_ENDPOINTS.md` for the master endpoint catalog.
+6. **Promote to a smoke test** - copy the path, method, and payload shape into a new `test_<area>_apis.py` in `tests/internal_api/`. See `docs/API_ENDPOINTS.md` for the master endpoint catalog.
 
 ### Debugging a failing smoke test
 
@@ -106,11 +106,11 @@ The collection is **not yet committed** - see "Bootstrapping the collection" bel
 1. **Never commit credentials.** Use Bruno's secret env vars or a gitignored `.env.local`. The `.bru` files in `environments/` should only contain non-secret host URLs and enterprise IDs.
 2. **Don't run destructive requests against prod.** Bruno doesn't have built-in guardrails - be careful with POST/PUT/DELETE in the `prod` environment.
 3. **Keep the collection aligned with `docs/API_ENDPOINTS.md`.** When you add a Bruno request, add or update the corresponding row in the endpoint catalog so the two stay in sync.
-4. **Bruno is exploratory, the pytest suite is authoritative.** A green Bruno request does not count as test coverage - only a smoke test in `tests/smoke/` does.
+4. **Bruno is exploratory, the pytest suite is authoritative.** A green Bruno request does not count as test coverage - only a smoke test in `tests/internal_api/` does.
 
 ## What about running Bruno in CI?
 
-We don't, currently. CI runs Playwright. Bruno's CLI (`bru run`) could shadow-run the collection in CI as a smoke-of-the-smoke, but that's redundant - if Playwright passes, Bruno would too. Skip unless we hit a specific need.
+We don't, currently. CI runs the pytest collect-gate. Bruno's CLI (`bru run`) could shadow-run the collection in CI as a smoke-of-the-smoke, but that's redundant - if the pytest suite passes, Bruno would too. Skip unless we hit a specific need.
 
 ## Alternatives if Bruno isn't for you
 
@@ -123,4 +123,4 @@ We don't, currently. CI runs Playwright. Bruno's CLI (`bru run`) could shadow-ru
 
 - [API_ENDPOINTS.md](./API_ENDPOINTS.md) - master catalog of every observed endpoint + smoke coverage status
 - [API_TESTING_NOTES.md](./API_TESTING_NOTES.md) - QA environment runbook (site/camera inventory, JSESSIONID auth notes)
-- `api_clients/base_api_client.py` - the Playwright/requests client all smoke tests extend
+- `api_clients/base_api_client.py` - the requests-based client the internal-API tests extend

@@ -21,7 +21,7 @@ Auth: JSESSIONID cookie (not JWT). See `api_clients/auth_helper.py`.
 
 ## Status legend
 
-- **covered** - has a dedicated test in `tests/smoke/`
+- **covered** - has a dedicated test in `tests/internal_api/`
 - **in-progress** - Tier 1 stub written, assertions need fleshing out
 - **uncovered** - observed live, no test
 - **untriggered** - likely exists (write path, lazy panel) but not yet captured
@@ -163,7 +163,7 @@ Endpoint pattern: `firestore.googleapis.com/.../Listen/channel?...`
 
 | Tool | What it does | When to use |
 |---|---|---|
-| **pytest smoke suite** (`tests/smoke/`) | The authoritative automated API tests | Always - this is the source of truth for coverage |
+| **pytest internal-API suite** (`tests/internal_api/`) | The authoritative automated API tests (smoke depth, `@pytest.mark.smoke`) | Always - this is the source of truth for coverage |
 | **Bruno** (`tests/bruno/`) | Human-friendly request collection, plain-file checked into git | Exploring a new endpoint, debugging a failing smoke test, sharing a repro with the platform team - see [BRUNO_GUIDE.md](./BRUNO_GUIDE.md) |
 | **Chrome DevTools network capture** | Capturing what the SPA actually calls | First step in discovering an undocumented endpoint |
 

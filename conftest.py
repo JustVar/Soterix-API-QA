@@ -5,7 +5,7 @@
 # imported here can break every suite at collection time. Suite plumbing
 # lives with each suite:
 #
-#   tests/smoke/conftest.py            internal /v-apiserver fixtures
+#   tests/internal_api/conftest.py            internal /v-apiserver fixtures
 #   tests/integration_api/conftest.py  /v-integration-api fixtures
 #
 # Add a fixture here only when every suite needs it.

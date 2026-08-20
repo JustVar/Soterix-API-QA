@@ -1,7 +1,11 @@
-# API Smoke Tests
+# Internal API tests (/v-apiserver)
 
 ## Overview
-This folder contains API smoke tests aimed at quickly validating core platform functionality across environments. The suite currently collects 33 tests covering auth, user/session, admin, dashboard, camera, events, and search endpoints. Suite fixtures live in `conftest.py` in this folder.
+This folder holds the internal-API suite: smoke-depth tests (marked `@pytest.mark.smoke`) that quickly validate core platform functionality across environments. The suite currently collects 33 tests covering auth, user/session, admin, dashboard, camera, events, and search endpoints. Suite fixtures live in `conftest.py` in this folder.
+
+Directories in this repo name the API surface; markers name the test depth.
+Deeper internal-API tests (regression, security) belong here too, under their
+own markers - not in a new top-level directory.
 
 Scope:
 - Lightweight smoke checks (status codes, basic response shape)
@@ -34,11 +38,11 @@ Scope:
 From repository root:
 
 ```bash
-# Run API smoke tests
-pytest tests/smoke/ -v
+# Run the internal-API suite
+pytest tests/internal_api/ -v
 ```
 
-Target a specific environment by setting env variables or using the project's env config, e.g.: `ENV=qa BASE_URL=https://qa.example.invalid pytest tests/smoke/ -v`.
+Target a specific environment by setting env variables or using the project's env config, e.g.: `ENV=qa BASE_URL=https://qa.example.invalid pytest tests/internal_api/ -v`.
 
 ## API endpoints covered (examples)
 - `/REST/auth/session` (user session)

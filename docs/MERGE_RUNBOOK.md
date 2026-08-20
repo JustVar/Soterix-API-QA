@@ -2,9 +2,9 @@
 
 How work moves between this repo's two GitHub remotes without losing
 anything. Follow it for every merge. The sibling WebApp repo once lost ~100
-files in a merge that showed only 3 conflicts - git silently took the other
-side's version of every file only one line had changed. The checks below
-exist so that cannot happen again.
+files in a merge that showed only 3 conflicts. For every file that only one
+side had changed, git took that side's version without asking. The checks
+below exist so that cannot happen again.
 
 ## The two remotes
 
@@ -32,9 +32,9 @@ unavoidable, coordinate first, run `git fetch company`, and use
    ```
 
    Any other value means the clone predates the 2026-08-07 history cleanup
-   and shares no ancestor with main - merges from it will fail with
-   "refusing to merge unrelated histories". Recovery that keeps your work
-   (substitute YOUR root sha from the command above):
+   and shares no ancestor with main. Merges from it fail with "refusing to
+   merge unrelated histories". Recovery that keeps your work (substitute
+   YOUR root sha from the command above):
 
    ```bash
    git fetch https://github.com/Soterix-Systems/Soterix-API-QA.git main
@@ -57,8 +57,8 @@ unavoidable, coordinate first, run `git fetch company`, and use
 
 A plain `git push` pushes to BOTH orgs. If the team merged anything into
 company/main first, the push half-succeeds: JustVar advances,
-Soterix-Systems rejects, the remotes diverge - and `git status` still says
-"up to date" because only the JustVar URL is fetched. So:
+Soterix-Systems rejects, and the remotes diverge. Worse, `git status` still
+says "up to date", because only the JustVar URL is fetched. So:
 
 **Before every push:**
 

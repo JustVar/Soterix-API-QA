@@ -5,9 +5,9 @@ plugin's pure-Python resolution logic so the Phase 2 hygiene patches
 (RUN_RESULTS_PATH, per-test project marker) don't
 regress silently.
 
-Living under tests/api/smoke/ to be picked up by the default discovery without
+Living under tests/plugins/ to be picked up by the default discovery without
 needing to add a new test root or update pytest collection config. The tests
-do not require playwright, network, or QA Touch credentials.
+do not require network access or QA Touch credentials.
 """
 from __future__ import annotations
 

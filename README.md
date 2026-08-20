@@ -5,7 +5,7 @@ isolated suites**, one per API surface:
 
 | Suite | Surface | Auth | Credentials |
 |---|---|---|---|
-| `tests/smoke/` | internal `/v-apiserver` (everything the web app does) | session cookie | `QA_USER` / `QA_PASSWORD` |
+| `tests/internal_api/` | internal `/v-apiserver` (everything the web app does) | session cookie | `QA_USER` / `QA_PASSWORD` |
 | `tests/integration_api/` | third-party `/v-integration-api` (partner API) | static `x-vsaas-key` header | `VSAAS_INTEGRATION_KEY` |
 
 Full contracts, environments, and known-good test data: **`docs/API_SURFACES.md`**.
@@ -30,7 +30,7 @@ different credentials, so a bare `pytest` errors on whichever one you lack:
 
 ```powershell
 # Internal /v-apiserver suite (needs QA_USER/QA_PASSWORD)
-venv\Scripts\pytest tests\smoke --html=reports/smoke.html --self-contained-html
+venv\Scripts\pytest tests\internal_api --html=reports/internal.html --self-contained-html
 
 # Third-party /v-integration-api suite (needs VSAAS_INTEGRATION_KEY; skips without it)
 venv\Scripts\pytest tests\integration_api --html=reports/integration.html --self-contained-html
@@ -66,7 +66,7 @@ docs/               API_SURFACES.md (start here), endpoint catalog, MERGE_RUNBOO
 plugins/            QA Touch result reporter (dormant unless --qatouch-upload)
 qa/                 doc_registry.yaml (test-to-doc mapping)
 schemas/            OpenAPI snapshots + response schemas used for validation
-tests/smoke/        internal-API suite (fixtures in its conftest.py)
+tests/internal_api/        internal-API suite (fixtures in its conftest.py)
 tests/integration_api/  integration-API suite (fixtures in its conftest.py; pending key)
 tests/plugins/      unit tests for the reporter plugin
 tools/              discovery + QA Touch client utilities

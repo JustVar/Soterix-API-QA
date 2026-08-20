@@ -25,7 +25,7 @@ Hard rules:
 - UI automation belongs in the sibling repo Soterix-WebApp-QA. Do not add
   it here.
 - The two test suites stay isolated. Internal-suite fixtures live in
-  `tests/smoke/conftest.py`; integration-suite fixtures live in
+  `tests/internal_api/conftest.py`; integration-suite fixtures live in
   `tests/integration_api/conftest.py`. The root `conftest.py` stays
   minimal. `api_clients/` (BaseAPIClient included) is internal-suite
   plumbing: never reuse or edit it for the integration suite.

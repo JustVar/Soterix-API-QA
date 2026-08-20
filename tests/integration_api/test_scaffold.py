@@ -8,6 +8,6 @@ pytestmark = pytest.mark.integration
 
 
 def test_scaffold_fixtures_resolve(integration_base_url, integration_session):
-    """Prove the suite's fixtures wire up; skips until a key is issued."""
+    """Prove the suite's fixtures wire up. Skips until a key is issued."""
     assert integration_base_url.endswith("/v-integration-api")
     assert "x-vsaas-key" in integration_session.headers

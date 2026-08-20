@@ -1,7 +1,7 @@
 # conftest.py -- third-party /v-integration-api suite.
 #
 # Everything this suite needs lives in this directory. Do not add fixtures
-# to the root conftest.py, and do not reuse or edit api_clients/ - that is
+# to the root conftest.py, and do not reuse or edit api_clients/. That is
 # internal-suite plumbing (see README.md here for why).
 import os
 
@@ -18,7 +18,7 @@ def integration_key():
     """
     key = os.environ.get("VSAAS_INTEGRATION_KEY")
     if not key:
-        pytest.skip("VSAAS_INTEGRATION_KEY is not set; see .env.template")
+        pytest.skip("VSAAS_INTEGRATION_KEY is not set. See .env.template")
     return key
 
 
@@ -26,7 +26,7 @@ def integration_key():
 def integration_base_url(env_config):
     """Base URL for /v-integration-api. Skips where the surface is absent.
 
-    Only config/env/qa.py carries a URL; stage and prod carry None because
+    Only config/env/qa.py carries a URL. Stage and prod carry None because
     the surface 404s there (as of 2026-08-05). Read with .get() so partner
     config variants without the key also skip instead of erroring.
     """

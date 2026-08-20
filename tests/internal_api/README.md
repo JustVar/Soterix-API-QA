@@ -3,16 +3,16 @@
 ## Overview
 This folder holds the internal-API suite: smoke-depth tests (marked `@pytest.mark.smoke`) that quickly validate core platform functionality across environments. The suite currently collects 33 tests covering auth, user/session, admin, dashboard, camera, events, and search endpoints. Suite fixtures live in `conftest.py` in this folder.
 
-Directories in this repo name the API surface; markers name the test depth.
-Deeper internal-API tests (regression, security) belong here too, under their
-own markers - not in a new top-level directory.
+Directories in this repo name the API surface. Markers name the test depth.
+Deeper internal-API tests (regression, security) belong here too, under
+their own markers, not in a new top-level directory.
 
 Scope:
 - Lightweight smoke checks (status codes, basic response shape)
 - Dynamic discovery of site and enterprise IDs via fixtures
 - Tests intended to be fast and safe to run against test/QA environments
 
-## Core tests (original 16; later files follow the same pattern)
+## Core tests (the original 16, later files follow the same pattern)
 1. `test_get_user_session` - GET current user session; validate session response structure via `user_api.validate_session_response()`.
 2. `test_get_user_roles` - GET user roles; assert response type (list/dict).
 3. `test_get_enterprise_id_dynamic` - Validate dynamic enterprise ID derived from site status (fixture `test_enterprise_id`).

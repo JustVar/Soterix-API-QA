@@ -19,7 +19,7 @@ The rules below are the protection.
 
 **Rule zero: nobody force-pushes `main`, ever.** If a rewrite is truly
 unavoidable, coordinate first, run `git fetch company`, and use
-`--force-with-lease` only - never bare `--force`.
+`--force-with-lease` only. Never use bare `--force`.
 
 ## Contributors (integration suite build-out)
 
@@ -45,7 +45,7 @@ unavoidable, coordinate first, run `git fetch company`, and use
    --stdout > work.patch`, fresh clone, `git am -3 work.patch`.
 3. Work on a feature branch (for example `integration-api-tests`), push it
    to Soterix-Systems, open a PR against `main` there. Do not push to
-   `main` directly - the PR is what anchors review and this checklist.
+   `main` directly. The PR anchors review and this checklist.
 4. Before requesting review, run your suite and a whole-tree collection:
 
    ```bash
@@ -79,10 +79,10 @@ git merge --no-ff --no-commit company/main
 git ls-files | sort -u > /tmp/files_post.txt
 comm -23 /tmp/files_pre.txt /tmp/files_post.txt        # expected removals only
 
-# 2. Files where deletions dwarf additions - the silent-revert signature:
+# 2. Files where deletions dwarf additions (the silent-revert signature):
 git diff --numstat $PRE | awk '$2 > 2*$1 && $2 > 20'   # review every line it prints
 
-# 3. Files only the company side changed - git merges these without asking:
+# 3. Files only the company side changed (git merges these without asking):
 comm -23 <(git diff --name-only $(git merge-base $PRE company/main) company/main | sort) \
          <(git diff --name-only $(git merge-base $PRE company/main) $PRE | sort)
 # eyeball each one's diff before committing
@@ -96,7 +96,7 @@ git push                               # now fast-forwards both orgs
 
 If a push already half-succeeded (rejection message named the
 Soterix-Systems URL): do the integrate steps above, then push again.
-Nothing is lost - the rejection is the safety working.
+Nothing is lost. The rejection is the safety working.
 
 ## After any merge lands
 

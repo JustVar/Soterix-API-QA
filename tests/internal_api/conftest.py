@@ -39,7 +39,7 @@ def login_data():
         if not creds.get("email") or not creds.get("password"):
             raise ValueError(
                 f"BOX='{box}' is set but its credentials are incomplete. The "
-                f"box's password variable is empty or missing in .env; see the "
+                f"box's password variable is empty or missing in .env. See the "
                 f"password_env key for this box in config/env/.")
         _log.info(f"[CREDENTIALS] Using box '{box}' account from env config")
         return {"username": creds["email"], "password": creds["password"]}

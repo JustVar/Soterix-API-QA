@@ -1,9 +1,5 @@
 """
-QA-API-DSH-01 - Dashboard APIs smoke (site status, shared widgets)
-Spec: qa/Automation_QA.xlsx › Test Mapping › row "QA-API-DSH-01"
-Section: I. API
-Owner: JV
-Deployment: After FT
+Dashboard APIs smoke (site status, shared widgets)
 """
 import pytest
 

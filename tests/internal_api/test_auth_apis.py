@@ -1,16 +1,15 @@
 """
-QA-API-AUTH-01 - Auth API smoke (central + SSO login)
-Spec: qa/Automation_QA.xlsx › Test Mapping › row "QA-API-AUTH-01"
-Section: I. API
-Owner: JV
-Deployment: After FT
+Auth API smoke (central + SSO login)
 
-Covers the two login paths the SPA uses: central credential login and the SSO
-fallback. Logout is intentionally omitted - exercising it on a shared session
+Covers the login path the web client uses (central/user/login), the
+captcha-gated path it must reject from an API client, and the SSO path.
+Logout is intentionally omitted - exercising it on a shared session
 would terminate other concurrently running tests.
 
-Catalog rows (see docs/API_ENDPOINTS.md):
-- POST /REST/central/user/auth/login
+Catalog rows (see docs/INTERNAL_API_INVENTORY.md):
+- POST /REST/central/user/login (the working contract, pinned below)
+- GET  /REST/central/user/session
+- POST /REST/central/user/auth/login (captcha-gated, rejects API clients)
 - POST /REST/sso/login
 """
 import os
@@ -26,25 +25,64 @@ _VERIFY = os.getenv("SSL_VERIFY", "false").lower() in ("true", "1", "yes")
 
 @pytest.mark.api
 @pytest.mark.smoke
-@pytest.mark.qa_doc("QA-API-AUTH-01")
 def test_central_login_accepts_valid_credentials(api_base_url, login_data):
-    """POST /REST/central/user/auth/login with valid creds returns a token.
+    """AuthHelper.login() with valid creds returns a token.
 
-    Uses AuthHelper.login() which tries central then SSO. A non-empty token
-    string proves at least one of the two endpoints accepted the credentials.
+    AuthHelper may answer from its .session_cache, so this proves the helper
+    works, not the endpoint. test_login_contract_returns_a_session pins the
+    endpoint itself.
     """
     from api_clients.auth_helper import AuthHelper
 
     helper = AuthHelper(api_base_url)
     token = helper.login(login_data["username"], login_data["password"])
 
-    assert token, "Expected a session token from /REST/central/user/auth/login or /REST/sso/login"
+    assert token, "Expected a session token from /REST/central/user/login"
     assert isinstance(token, str) and len(token) >= 16
 
 
 @pytest.mark.api
 @pytest.mark.smoke
-@pytest.mark.qa_doc("QA-API-AUTH-01")
+def test_login_contract_returns_a_session(api_base_url, login_data):
+    """POST /REST/central/user/login answers 200 / status 2002 with a JSESSIONID the session endpoint accepts.
+
+    The body is {accountid: <email>, username: "Example Label", password: <sha512
+    hex>}. "Example Label" is the literal the web client sends. The account goes
+    in accountid. No captcha is involved on this path. The UI suite
+    (Soterix-WebApp-QA, tests/shared/api/client.py) signs in with this
+    exact body, so a change here breaks its test data setup.
+    """
+    import hashlib
+
+    base = api_base_url.rstrip("/")
+    if not base.endswith("/v-apiserver"):
+        base = base + "/v-apiserver"
+    email = login_data["username"]
+    body = {
+        "accountid": email,
+        "username": "Example Label",
+        "password": hashlib.sha512(login_data["password"].encode("utf-8")).hexdigest(),
+    }
+    r = requests.post(f"{base}/REST/central/user/login", json=body, timeout=20, verify=_VERIFY)
+    assert r.status_code == 200, f"Login answered {r.status_code}: {r.text[:300]}"
+    envelope = r.json()
+    assert envelope.get("code") == 200, f"Unexpected code: {envelope.get('code')}, body: {str(envelope)[:300]}"
+    assert envelope.get("status") == 2002, f"Expected status 2002 (login ok), got {envelope.get('status')}"
+    token = (envelope.get("result") or [{}])[0].get("JSESSIONID")
+    assert token, f"Login answered 200 but result[0].JSESSIONID is missing: {str(envelope)[:300]}"
+
+    s = requests.get(
+        f"{base}/REST/central/user/session",
+        headers={"Cookie": f"JSESSIONID={token}"}, timeout=20, verify=_VERIFY)
+    assert s.status_code == 200, f"Session check answered {s.status_code}: {s.text[:300]}"
+    session = s.json()
+    assert session.get("code") == 200, f"Unexpected code: {session.get('code')}"
+    user_id = (session.get("result") or [{}])[0].get("userId", "")
+    assert user_id.lower() == email.lower(), f"Session belongs to '{user_id}', expected '{email}'"
+
+
+@pytest.mark.api
+@pytest.mark.smoke
 def test_central_login_rejects_invalid_credentials(api_base_url):
     """POST /REST/central/user/auth/login with bogus creds returns non-2xx.
 
@@ -74,7 +112,6 @@ def test_central_login_rejects_invalid_credentials(api_base_url):
 
 @pytest.mark.api
 @pytest.mark.smoke
-@pytest.mark.qa_doc("QA-API-AUTH-01")
 @pytest.mark.skipif(
     not os.getenv("SSO_TEST_USERNAME"),
     reason="SSO smoke needs SSO_TEST_USERNAME and SSO_TEST_PASSWORD env vars",

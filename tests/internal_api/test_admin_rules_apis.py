@@ -1,9 +1,5 @@
 """
-QA-API-ADM-RUL-01 - Admin -> Rules API smoke
-Spec: qa/Automation_QA.xlsx › Test Mapping › row "QA-API-ADM-RUL-01"
-Section: I. API
-Owner: JV
-Deployment: After FT
+Admin -> Rules API smoke
 
 Read-only smoke for rule search and the supporting metadata endpoints. Rule
 CRUD is intentionally out of scope here - those require throwaway test data
@@ -20,7 +16,6 @@ import pytest
 
 @pytest.mark.api
 @pytest.mark.smoke
-@pytest.mark.qa_doc("QA-API-ADM-RUL-01")
 def test_rule_search(user_api, test_enterprise_id):
     """POST /REST/rule/enterprise/{enterpriseId}/search returns the rule list.
 
@@ -39,7 +34,6 @@ def test_rule_search(user_api, test_enterprise_id):
 
 @pytest.mark.api
 @pytest.mark.smoke
-@pytest.mark.qa_doc("QA-API-ADM-RUL-01")
 def test_get_analytic_schedule(user_api, test_enterprise_id):
     """GET /REST/analyticschedule/{enterpriseId}/type/{type} returns schedule metadata.
 
@@ -54,7 +48,6 @@ def test_get_analytic_schedule(user_api, test_enterprise_id):
 
 @pytest.mark.api
 @pytest.mark.smoke
-@pytest.mark.qa_doc("QA-API-ADM-RUL-01")
 def test_get_webhooks_for_enterprise(user_api, test_enterprise_id):
     """GET /REST/webhook/{enterpriseId} returns the enterprise's webhook config list."""
     r = user_api.get(f"/REST/webhook/{test_enterprise_id}")
@@ -67,7 +60,6 @@ def test_get_webhooks_for_enterprise(user_api, test_enterprise_id):
 
 @pytest.mark.api
 @pytest.mark.smoke
-@pytest.mark.qa_doc("QA-API-ADM-RUL-01")
 def test_get_licensed_analytics(user_api, test_enterprise_id):
     """GET /REST/site/analytics/enterprise/{enterpriseId}/licensed returns the licensed analytic types."""
     r = user_api.get(f"/REST/site/analytics/enterprise/{test_enterprise_id}/licensed")

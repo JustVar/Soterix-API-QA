@@ -1,6 +1,6 @@
 # API Surfaces, Auth Contracts, and Environments
 
-Last verified: **2026-08-08**
+Last verified: **2026-08-24**
 
 There are **two separate APIs** behind the same hostnames. They have different
 base paths, different authentication, and different availability per environment.
@@ -13,7 +13,7 @@ the single reference for both.
 | Auth | `JSESSIONID` session cookie | `x-vsaas-key` header (static API key) |
 | Scope | Everything the web app does | Read-only subset for 3rd parties |
 | Methods | GET / POST / PUT / DELETE | GET only |
-| Documented? | No public spec - discovered by testing | Swagger UI published |
+| Documented? | Vendor swagger is stale. Shapes come from testing: `INTERNAL_API_INVENTORY.md` | Swagger UI published |
 | Available | QA, stage, prod | **QA only** (404 elsewhere as of 2026-08-05) |
 
 ---
@@ -35,18 +35,23 @@ Content-Type: application/json
 }
 ```
 
-Success returns `200` with the token at `result[0].JSESSIONID`. Send it on every
-subsequent call as `Cookie: JSESSIONID=<token>`.
+Success returns HTTP `200` with envelope `status` 2002 and the token at
+`result[0].JSESSIONID`. Send it on every subsequent call as
+`Cookie: JSESSIONID=<token>`. No reCAPTCHA is involved on this path.
 
 Implemented in `AuthHelper._api_login()`
 (`api_clients/auth_helper.py`). **No browser is required.**
+`tests/internal_api/test_auth_apis.py::test_login_contract_returns_a_session`
+pins this contract (verified 2026-08-24).
 
 ### Things that do NOT work - and why
 
 - **`/REST/central/user/auth/login` requires a `captcha` query parameter.** Only a
   browser can produce a reCAPTCHA token, so this endpoint is unusable from an API
   client. The suite used to call it, fail, and silently fall back to driving a
-  headed Chromium. That fallback is now opt-in only (`ALLOW_UI_LOGIN_FALLBACK=1`).
+  headed Chromium. That fallback no longer exists in this repo. No code reads an
+  `ALLOW_UI_LOGIN_FALLBACK` variable. A login failure raises with a message that
+  names the fix (table below).
 - **Plaintext passwords are always rejected.** The password must be SHA512-hashed.
 - **`/REST/sso/login`** returns "Missing one or more mandatory request
   parameter(s)" for every shape tried; its required parameters are unknown.
@@ -67,6 +72,69 @@ The server distinguishes these, and each needs a different fix:
 | Connection error / DNS failure | Host is wrong or unreachable | Check `BASE_URL`, VPN |
 
 `AuthHelper` raises these as distinct messages - trust them.
+
+### The response envelope
+
+Every internal call answers the same JSON envelope:
+
+```
+{"status": 2000, "code": 200, "description": "OK",
+ "message": "Successfully Retrieved!", "uri": "/v-apiserver/REST/site",
+ "result": [...]}
+```
+
+Trust `code`, `result`, and a follow-up read. Do not trust `message`. The
+text comes from a fixed set and often does not match what happened. Two
+examples from QA (2026-08-24):
+
+- `POST /REST/site/{site}/getuserviewlayouts` with body `{}` answered
+  status 2006 "Successfully deleted!" with `result [{"mode": ...}]` and
+  deleted nothing (checked in the UI). With `{"mode": "live"}` it answered
+  status 3139 "Required http POST request payload is not found!".
+- `DELETE /REST/clipbookmark/{id}` answers 2006 "Successfully deleted!"
+  while the row stays in the site list. It is a soft delete: `deletedAt`
+  is -1 while the bookmark is live and a timestamp after the delete.
+
+On success `code` is 200 and `status` is the API status. On an error the
+2 fields swap roles: `code` carries the API error code, `status` carries
+the HTTP status, and a `returnValue` names the error. A repeated
+`deletelocation` answers:
+
+```
+HTTP 400 {"returnValue": "DB_NOT_FOUND", "code": 1006, "status": 400,
+          "description": "Bad Request", "message": "Database: no record found!"}
+```
+
+Status values seen on QA (2026-08-24):
+
+| Value | Field | HTTP | Seen on | Meaning |
+|---|---|---|---|---|
+| 2000 | `status` | 200 | most GETs, `deletelocation` | retrieved |
+| 2002 | `status` | 200 | `central/user/login` | login ok |
+| 2005 | `status` | 200 | `POST /REST/clipbookmark` | created |
+| 2006 | `status` | 200 | `DELETE /REST/clipbookmark/{id}`, `getuserviewlayouts` with `{}` | deleted, also used as a generic ok |
+| 2007 | `status` | 200 | `POST /REST/site/config/{site}/location` | applied |
+| 3139 | `status` | not recorded | `getuserviewlayouts`, `site/search` with a body the server cannot read | payload missing |
+| 1006 | `code` | 400 | repeated `deletelocation` | "Database: no record found!" |
+
+`test_location_apis.py::test_delete_location_removes_it_and_a_second_delete_answers_1006`
+pins the 1006 shape.
+
+### Contracts the UI suite depends on
+
+Since 2026-08-24 the UI suite (Soterix-WebApp-QA, `tests/shared/api/`)
+builds its test data through this API instead of the browser. Its fixtures
+send these requests:
+
+| UI fixture | Endpoints | Pinned by |
+|---|---|---|
+| `api` (login, site check) | `POST /REST/central/user/login`, `GET /REST/site` | `test_auth_apis.py::test_login_contract_returns_a_session`, `test_location_apis.py::test_site_list_names_the_data_site` |
+| `api_camera_group` (camera groups are locations) | `POST /REST/site/config/{site}/location`, `GET /REST/site/{site}/location/tree`, `GET /REST/site/{site}/deletelocation/{id}` | `test_location_apis.py` |
+| `api_bookmark` | `POST /REST/clipbookmark`, `GET /REST/clipbookmark/{site}`, `DELETE /REST/clipbookmark/{id}` | `test_bookmark_apis.py` |
+
+A change in any of these answers breaks UI test setup in the other repo.
+When a pinned test fails, tell the WebApp QA maintainer before you change
+the assertion. Request and response shapes: `INTERNAL_API_INVENTORY.md`.
 
 ---
 
@@ -131,7 +199,9 @@ The catch is coverage - it exposes only a small slice of the platform so far
 (more is promised as the swagger site gets updated). Everything else still requires the internal
 API and its session login, and remains **undocumented**: the endpoint list has to
 be discovered by capturing what the app does. `docs/API_ENDPOINTS.md` is that
-running catalog.
+running catalog (where each call surfaces, coverage status).
+`docs/INTERNAL_API_INVENTORY.md` holds the request and response shapes and
+the date each was verified.
 
 ---
 
@@ -148,9 +218,25 @@ Config lives in `config/env/{qa,stage,prod}.py`; hosts there are authoritative.
 ### Test data
 
 Sites and channels differ per account, so the suite discovers them at run time.
-Use the discovery fixtures (`test_site_id`, `test_channel_ids`) rather than
-hardcoding ids. Set `TEST_SITE_ID` in `.env` only to pin a specific site your
-account can reach; a site id your account cannot reach returns 400.
+
+**Read-only tests** use the discovery fixtures (`test_site_id`,
+`test_channel_ids`) rather than hardcoded ids. Set `TEST_SITE_ID` in `.env`
+only to pin a specific site your account can reach. A site id your account
+cannot reach returns 400.
+
+**Tests that write data** (locations, bookmarks) use the fixtures
+`data_site_id` and `data_channel_id`. They resolve the site by NAME from
+`test_site_name` and `test_camera_name` in `config/env/`, never from
+`TEST_SITE_ID`. Name the site, not a number: on QA, `TEST_SITE_ID=17` is
+"Example Corporate Office", while the UI suite works on
+"Newtown Action Area" (siteId 16, camera "main gate" = channel 97). Both
+repos carried 17 by mistake. If you set `TEST_SITE_ID`, write the site name
+next to it in `.env`.
+
+Writes are gated by `allow_write` and `allow_delete` in `config/env/`
+(fixture `data_write_gate`). QA allows both, stage allows no deletes, prod
+allows neither. Every name a test creates starts with `AutoTest ` and the
+test removes it at teardown.
 
 QA testing happens mainly on the india box. Sign in with your own account.
 
@@ -161,3 +247,5 @@ QA testing happens mainly on the india box. Sign in with your own account.
 - Obtain and store the integration API key (`VSAAS_INTEGRATION_KEY`).
 - Integration API is QA-only; re-check stage/prod when it is rolled out.
 - `/REST/sso/login` parameter contract is still unknown.
+- `POST /REST/site/{site}/getuserviewlayouts` working payload is unknown
+  (`{}` and `{"mode": "live"}` both answer the wrong message).

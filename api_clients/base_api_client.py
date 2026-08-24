@@ -83,8 +83,11 @@ class BaseAPIClient:
     def get(self, path: str, params: Dict[str, Any] | None = None) -> requests.Response:
         return self._request("GET", path, params=params)
 
-    def post(self, path: str, json: Any | None = None, data: Any | None = None) -> requests.Response:
-        return self._request("POST", path, json=json, data=data)
+    def post(self, path: str, json: Any | None = None, data: Any | None = None,
+             params: dict[str, Any] | None = None, files: Any | None = None) -> requests.Response:
+        # `params` and `files` serve the few endpoints that take query
+        # parameters plus a multipart part (POST /REST/clipbookmark).
+        return self._request("POST", path, json=json, data=data, params=params, files=files)
 
     def put(self, path: str, json: Any | None = None) -> requests.Response:
         return self._request("PUT", path, json=json)

@@ -1,9 +1,5 @@
 """
-QA-API-EVT-01 - Events page API smoke (event search)
-Spec: qa/Automation_QA.xlsx > Test Mapping > row "QA-API-EVT-01"
-Section: I. API
-Owner: JV
-Deployment: After FT
+Events page API smoke (event search)
 
 /REST/site/search/event is the RESULT-RETRIEVAL half of a two-step flow, not a
 filter query (verified against the OpenAPI spec and live QA on 2026-08-08):
@@ -27,7 +23,6 @@ import pytest
 
 @pytest.mark.api
 @pytest.mark.smoke
-@pytest.mark.qa_doc("QA-API-EVT-01")
 def test_event_search_returns_results_or_empty(
         search_api, user_api, test_site_id, test_channel_ids):
     """Submit a search job, then page its events; empty eventList is a pass.
@@ -68,7 +63,6 @@ def test_event_search_returns_results_or_empty(
 
 @pytest.mark.api
 @pytest.mark.smoke
-@pytest.mark.qa_doc("QA-API-EVT-01")
 def test_event_search_validates_required_filters(user_api):
     """POST /REST/site/search/event with empty body must NOT return success+data.
 

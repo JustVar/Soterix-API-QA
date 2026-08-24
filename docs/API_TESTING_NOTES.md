@@ -10,13 +10,16 @@
 |---------|-------|
 | Base URL | https://qa.example.invalid |
 | API Path | /v-apiserver |
-| Site ID | 17 (`TEST_SITE_ID`) |
+| Test data site | "Newtown Action Area" = siteId 16, camera "main gate" = channel 97. Resolved by name from `test_site_name` in `config/env/qa.py`. |
+| `TEST_SITE_ID` | Optional pin for read-only tests only. 17 is "Example Corporate Office", not the test data site. |
 
-Updated 2026-08-05. The old host `qa.example.invalid` **no longer
-resolves in DNS**, and site `110` returns 400 for the current account - its
-valid sites are `16, 17, 105, 109, 111`. The camera inventory below was captured
-against site 110 on the previous host and is retained only as a historical
-reference; use `tools/discover_cameras.py` for the live topology.
+Updated 2026-08-24. The old host `qa.example.invalid` **no longer
+resolves in DNS**, and site `110` returns 400 for the current account. The
+account's sites on 2026-08-24 were `16, 17, 97, 105, 109, 111, 125, 153`.
+The camera inventory below was captured against site 110 on the previous
+host and is retained only as a historical reference; use
+`tools/discover_cameras.py` for the live topology (it still defaults to
+site 17 when `TEST_SITE_ID` is unset).
 
 ## Authentication
 
@@ -29,8 +32,8 @@ reference; use `tools/discover_cameras.py` for the live topology.
 > returns 400 for the QA account (expected)" and that the suite "falls back to UI
 > login via Playwright". That was a bug being recorded as intended behaviour. The
 > 400 was caused by calling the captcha-gated `/REST/central/user/auth/login`
-> with a plaintext password. The UI fallback is now opt-in only
-> (`ALLOW_UI_LOGIN_FALLBACK=1`) and API runs launch no browser at all.
+> with a plaintext password. No UI fallback exists in this repo (no code reads
+> an `ALLOW_UI_LOGIN_FALLBACK` variable). API runs launch no browser at all.
 
 ## Camera API Endpoints
 

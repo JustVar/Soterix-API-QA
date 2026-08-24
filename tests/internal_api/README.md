@@ -1,7 +1,13 @@
 # Internal API tests (/v-apiserver)
 
 ## Overview
-This folder holds the internal-API suite: smoke-depth tests (marked `@pytest.mark.smoke`) that quickly validate core platform functionality across environments. The suite currently collects 33 tests covering auth, user/session, admin, dashboard, camera, events, and search endpoints. Suite fixtures live in `conftest.py` in this folder.
+This folder holds the internal-API suite: smoke-depth tests (marked `@pytest.mark.smoke`) that quickly validate core platform functionality across environments. The suite currently collects 39 tests covering auth, user/session, admin, dashboard, camera, camera groups (locations), bookmarks, events, and search endpoints. Suite fixtures live in `conftest.py` in this folder.
+
+`test_location_apis.py` and `test_bookmark_apis.py` are contract tests: the
+UI suite (Soterix-WebApp-QA) seeds its test data through those endpoints,
+so a change in their answers breaks UI setup there. They write throwaway
+`AutoTest ` data and remove it at teardown. See `docs/API_SURFACES.md`,
+"Contracts the UI suite depends on".
 
 Directories in this repo name the API surface. Markers name the test depth.
 Deeper internal-API tests (regression, security) belong here too, under
@@ -45,19 +51,25 @@ pytest tests/internal_api/ -v
 Target a specific environment by setting env variables or using the project's env config, e.g.: `ENV=qa BASE_URL=https://qa.example.invalid pytest tests/internal_api/ -v`.
 
 ## API endpoints covered (examples)
-- `/REST/auth/session` (user session)
+- `/REST/central/user/login` and `/REST/central/user/session` (login contract, session)
 - `/REST/central/role/{enterpriseId}` (roles)
 - `/REST/dashboard/site/{siteId}/status` (site status)
-- `/REST/site/{siteId}/location/tree` (camera/location tree)
+- `/REST/site/{siteId}/location/tree` (camera groups = locations)
+- `/REST/site/config/{siteId}/location` and `/REST/site/{siteId}/deletelocation/{id}` (camera group create and delete)
+- `/REST/clipbookmark` (bookmark create, list, soft delete)
 - `/REST/site/{siteId}/channel/{channelId}/snap` (camera snapshot)
 - `/REST/dashboard/sharedwidgets/{customerId}/data` (widgets)
 - `/REST/site/search` (search)
 
+The full list with request and response shapes is `docs/INTERNAL_API_INVENTORY.md`.
+
 ## Fixtures used
 - `api_base_url` - resolved API base URL for the active environment
 - `api_auth_token` / `api_auth_helper` - provides auth token or helper for requests
-- `user_api`, `dashboard_api`, `camera_api`, `search_api` - API client wrappers used by tests
-- `discovered_site`, `discovered_site_id`, `discovered_enterprise_id`, `test_site_id`, `test_channel_ids` - auto-discovery fixtures to pick valid site/channel ids for tests
+- `user_api`, `dashboard_api`, `camera_api`, `search_api`, `location_api`, `bookmark_api` - API client wrappers used by tests
+- `discovered_site`, `discovered_site_id`, `discovered_enterprise_id`, `test_site_id`, `test_channel_ids` - auto-discovery fixtures to pick valid site/channel ids for read-only tests
+- `data_site`, `data_site_id`, `data_channel_id` - the site and camera that `test_site_name` / `test_camera_name` in `config/env/` name, resolved by name. Tests that write data use these, never `TEST_SITE_ID`.
+- `data_write_gate` - skips a writing test unless the env allows both writes and deletes (`allow_write`, `allow_delete` in `config/env/`)
 
 ## Notes & Recommendations
 - Some tests accept multiple valid shapes (JSON or binary) - assertions aim to be permissive to reduce false negatives.

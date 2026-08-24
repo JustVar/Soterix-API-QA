@@ -1,9 +1,5 @@
 """
-QA-API-SRC-01 - Search APIs smoke (person, vehicle)
-Spec: qa/Automation_QA.xlsx › Test Mapping › row "QA-API-SRC-01"
-Section: I. API
-Owner: JV
-Deployment: After FT
+Search APIs smoke (person, vehicle)
 """
 import time
 import pytest

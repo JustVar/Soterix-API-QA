@@ -9,15 +9,18 @@ import os
 import pytest
 
 import api_clients.auth_helper as auth_helper_mod
+import api_clients.bookmark_api as bookmark_mod
 import api_clients.camera_api as camera_mod
 import api_clients.dashboard_api as dashboard_mod
 import api_clients.discovery_helper as discovery_mod
+import api_clients.location_api as location_mod
 import api_clients.search_api as search_mod
 import api_clients.user_api as user_mod
 from api_clients import site_helper
 from config.base_config import (
     config as _config,  # noqa: F401 (resolves ENV early, with a clear error)
 )
+from config.base_config import is_delete_allowed, is_write_allowed
 
 _log = logging.getLogger("env_config")
 
@@ -192,3 +195,75 @@ def test_channel_ids(discovery_helper, test_site_id):
         return sorted(ids)
 
     return [1]
+
+
+# --------------------------------------------------------------------------
+# Test data fixtures. Tests that write data (locations, bookmarks) resolve
+# their site by NAME, never by TEST_SITE_ID. A number is easy to get wrong:
+# on QA, TEST_SITE_ID=17 is "Example Corporate Office" while the UI
+# suite works on "Newtown Action Area" (siteId 16). See docs/API_SURFACES.md,
+# "Test data".
+# --------------------------------------------------------------------------
+
+@pytest.fixture(scope="session")
+def location_api(api_base_url, api_auth_token):
+    return location_mod.LocationAPI(api_base_url, api_auth_token)
+
+
+@pytest.fixture(scope="session")
+def bookmark_api(api_base_url, api_auth_token):
+    return bookmark_mod.BookmarkAPI(api_base_url, api_auth_token)
+
+
+@pytest.fixture(scope="session")
+def data_site(site_discovery, login_data, env_config):
+    """The site that test_site_name in config/env/ names, resolved by name.
+
+    Skips when the config has no name or the account has no site by that
+    name. The skip message lists the sites the account can see.
+    """
+    name = env_config.get("test_site_name")
+    if not name:
+        pytest.skip(
+            f"test_site_name is not set in config/env/ for ENV={os.environ.get('ENV', 'qa')}")
+    email = login_data["username"]
+    site = site_discovery.get_site_by_name(email, name)
+    if not site:
+        names = [s.get("name") for s in site_discovery.get_user_sites(email)]
+        pytest.skip(
+            f"No site named '{name}' for {email}. Sites: {names}. "
+            f"Fix test_site_name in config/env/.")
+    return site
+
+
+@pytest.fixture(scope="session")
+def data_site_id(data_site):
+    return int(data_site["siteId"])
+
+
+@pytest.fixture(scope="session")
+def data_channel_id(location_api, data_site_id, env_config):
+    """Channel id of test_camera_name on the data site, read from location/tree.
+
+    Raises LookupError with the camera names seen when the tenant renamed
+    the camera. The fix is test_camera_name in config/env/.
+    """
+    camera = env_config.get("test_camera_name")
+    if not camera:
+        pytest.skip(
+            f"test_camera_name is not set in config/env/ for ENV={os.environ.get('ENV', 'qa')}")
+    return location_api.channel_id_by_name(location_api.get_location_tree(data_site_id), camera)
+
+
+@pytest.fixture(scope="session")
+def data_write_gate(env_config):
+    """Skip unless the env allows writes AND deletes (config/env/ allow_write, allow_delete).
+
+    A test that creates data must also remove it, so both flags are
+    needed. QA allows both, stage allows no deletes, prod allows neither.
+    """
+    write, delete = is_write_allowed(), is_delete_allowed()
+    if not (write and delete):
+        pytest.skip(
+            f"ENV={os.environ.get('ENV', 'qa')} has allow_write={write} "
+            f"allow_delete={delete}. Tests that create data need both. See config/env/.")

@@ -1,9 +1,5 @@
 """
-QA-API-USR-01 - User APIs smoke (session, roles, enterprise discovery)
-Spec: qa/Automation_QA.xlsx › Test Mapping › row "QA-API-USR-01"
-Section: I. API
-Owner: JV
-Deployment: After FT
+User APIs smoke (session, roles, enterprise discovery)
 """
 import pytest
 

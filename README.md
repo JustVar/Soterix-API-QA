@@ -9,6 +9,8 @@ isolated suites**, one per API surface:
 | `tests/integration_api/` | third-party `/v-integration-api` (partner API) | static `x-vsaas-key` header | `VSAAS_INTEGRATION_KEY` |
 
 Full contracts, environments, and known-good test data: **`docs/API_SURFACES.md`**.
+Every internal endpoint found or tested, with request and response shapes:
+**`docs/INTERNAL_API_INVENTORY.md`**.
 To build out the integration suite, start at **`tests/integration_api/README.md`**.
 It says where code goes and what not to reuse.
 
@@ -61,11 +63,10 @@ three things is wrong:
 
 ```
 .github/workflows/  collect-gate CI: imports + fixture wiring on every push/PR
-api_clients/        internal-suite HTTP clients (auth, cameras, dashboard, search, users)
+api_clients/        internal-suite HTTP clients (auth, cameras, locations, bookmarks, dashboard, search, users)
 config/             env configs (qa/stage/prod) + QA Touch case mapping
-docs/               API_SURFACES.md (start here), endpoint catalog, MERGE_RUNBOOK.md
+docs/               API_SURFACES.md (start here), INTERNAL_API_INVENTORY.md, endpoint catalog, MERGE_RUNBOOK.md
 plugins/            QA Touch result reporter (dormant unless --qatouch-upload)
-qa/                 doc_registry.yaml (test-to-doc mapping)
 schemas/            OpenAPI snapshots + response schemas used for validation
 tests/internal_api/     internal-API suite (fixtures in its conftest.py)
 tests/integration_api/  integration-API suite (fixtures in its conftest.py, pending key)

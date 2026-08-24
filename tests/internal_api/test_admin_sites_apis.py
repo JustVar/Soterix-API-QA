@@ -1,9 +1,5 @@
 """
-QA-API-ADM-STE-01 - Admin -> Sites API smoke
-Spec: qa/Automation_QA.xlsx › Test Mapping › row "QA-API-ADM-STE-01"
-Section: I. API
-Owner: JV
-Deployment: After FT
+Admin -> Sites API smoke
 
 Catalog rows (see docs/API_ENDPOINTS.md):
 - POST /REST/enterprise/sitedetails
@@ -17,7 +13,6 @@ import pytest
 
 @pytest.mark.api
 @pytest.mark.smoke
-@pytest.mark.qa_doc("QA-API-ADM-STE-01")
 def test_get_site_details(user_api, test_site_id):
     """GET /REST/site/{siteId}/getsitedetails returns details for one site."""
     r = user_api.get(f"/REST/site/{test_site_id}/getsitedetails")
@@ -29,7 +24,6 @@ def test_get_site_details(user_api, test_site_id):
 
 @pytest.mark.api
 @pytest.mark.smoke
-@pytest.mark.qa_doc("QA-API-ADM-STE-01")
 def test_enterprise_sitedetails(user_api, test_enterprise_id):
     """POST /REST/enterprise/sitedetails returns the enterprise's site roster.
 
@@ -50,7 +44,6 @@ def test_enterprise_sitedetails(user_api, test_enterprise_id):
 
 @pytest.mark.api
 @pytest.mark.smoke
-@pytest.mark.qa_doc("QA-API-ADM-STE-01")
 def test_edge_version_latest(user_api):
     """GET /REST/edge/version/latest returns the latest published edge version."""
     r = user_api.get("/REST/edge/version/latest")
@@ -62,7 +55,6 @@ def test_edge_version_latest(user_api):
 
 @pytest.mark.api
 @pytest.mark.smoke
-@pytest.mark.qa_doc("QA-API-ADM-STE-01")
 def test_edge_version_site_current(user_api, test_site_id):
     """GET /REST/edge/version/site/{siteId}/current returns the site's running edge build."""
     r = user_api.get(f"/REST/edge/version/site/{test_site_id}/current")
@@ -73,7 +65,6 @@ def test_edge_version_site_current(user_api, test_site_id):
 
 @pytest.mark.api
 @pytest.mark.smoke
-@pytest.mark.qa_doc("QA-API-ADM-STE-01")
 def test_edge_version_site_previous(user_api, test_site_id):
     """GET /REST/edge/version/site/{siteId}/previous returns the site's previous edge build."""
     r = user_api.get(f"/REST/edge/version/site/{test_site_id}/previous")

@@ -12,8 +12,12 @@ config = {
     "allow_write": True,
     "allow_delete": True,
 
-    # Test Data Configuration
-    "test_site_name": "Newtown ActionArea",
+    # Test data. Tests that write data resolve the site by this name
+    # (fixture data_site_id), never by TEST_SITE_ID. On QA the name
+    # "Newtown Action Area" is siteId 16 and "main gate" is channel 97
+    # (verified 2026-08-24). The shared tenant renames things: if a
+    # lookup fails, fix the name here.
+    "test_site_name": "Newtown Action Area",
     "test_camera_name": "main gate",
 
     # Box configurations

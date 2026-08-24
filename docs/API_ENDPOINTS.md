@@ -2,7 +2,11 @@
 
 Living catalog of every REST endpoint the NexaiQ-Core SPA exercises, with smoke-test coverage status. Source of truth: live network capture on `staging.example.invalid`. Vendor swagger is currently stale (per 2026-05-15 audit) - trust this doc over swagger until a refreshed spec is delivered.
 
-Last updated: **2026-05-15**
+This file says where each call surfaces and whether a test covers it. Request
+and response shapes, and the date each was verified on QA, live in
+[INTERNAL_API_INVENTORY.md](./INTERNAL_API_INVENTORY.md).
+
+Last updated: **2026-08-24** (coverage flags and the auth rows; the capture is still from 2026-05-15)
 Capture method: **live network capture in Chrome DevTools, signed in as a QA account**
 
 ## Base path
@@ -32,8 +36,9 @@ Auth: JSESSIONID cookie (not JWT). See `api_clients/auth_helper.py`.
 
 | Status | Method | Path | Notes |
 |---|---|---|---|
-| uncovered | POST | `/REST/central/user/auth/login` | Primary login. Used by `auth_helper.py` but no smoke. |
-| uncovered | POST | `/REST/sso/login` | SSO fallback. Used by `auth_helper.py`. |
+| covered | POST | `/REST/central/user/login` | The login the web client uses (JSON body, SHA512 password, no captcha). Used by `auth_helper.py`. `test_auth_apis.py::test_login_contract_returns_a_session` |
+| covered | POST | `/REST/central/user/auth/login` | Captcha-gated browser login. Unusable from an API client. `test_auth_apis.py` pins the rejection. |
+| uncovered | POST | `/REST/sso/login` | Parameters unknown. `test_auth_apis.py` skips without `SSO_TEST_USERNAME`. Not used by `auth_helper.py`. |
 | untriggered | POST | `/REST/site/{siteId}/auth/logout` | Inferred from prior swagger; not yet exercised on staging. |
 | covered | GET | `/REST/central/user/session` | `test_user_apis.py::test_get_user_session` |
 | covered | GET | `/REST/central/userprofile/roles` | `test_user_apis.py::test_get_user_roles` |
@@ -43,35 +48,43 @@ Auth: JSESSIONID cookie (not JWT). See `api_clients/auth_helper.py`.
 
 | Status | Method | Path | Where surfaced |
 |---|---|---|---|
-| uncovered | GET | `/REST/site/user/{email}` | Views, Media, Admin |
-| uncovered | GET | `/REST/central/user/enterprise/{enterpriseId}` | Admin -> Users tab |
-| uncovered | GET | `/REST/central/user/enterprise/{enterpriseId}/profile/{profileId}` | Admin dashboard summary |
+| covered | GET | `/REST/site/user/{email}` | Views, Media, Admin. `test_admin_users_apis.py` |
+| covered | GET | `/REST/central/user/enterprise/{enterpriseId}` | Admin -> Users tab. `test_admin_users_apis.py` |
+| covered | GET | `/REST/central/user/enterprise/{enterpriseId}/profile/{profileId}` | Admin dashboard summary. `test_admin_users_apis.py` |
 | untriggered | POST | `/REST/central/user/update` | User edit (not triggered) |
-| untriggered | POST | `/REST/central/user/password/reset` | Forgot-password flow |
+| untriggered | PUT | `/REST/central/user/password/reset` | Forgot-password flow (the QA spec has PUT, not POST) |
 | untriggered | PUT | `/REST/central/user/password/update` | Change-password modal |
 
 ## Sites & devices (Admin -> Sites)
 
 | Status | Method | Path | Where surfaced |
 |---|---|---|---|
-| covered | GET | `/REST/site/{siteId}/location/tree` | `test_platform_apis.py` |
+| covered | GET | `/REST/site` | Site list. `test_location_apis.py::test_site_list_names_the_data_site` |
+| covered | GET | `/REST/site/{siteId}/location/tree` | Admin -> Sites Groups dropdown (a camera group is a location). `test_platform_apis.py`, `test_location_apis.py` |
+| covered | POST | `/REST/site/config/{siteId}/location` | Admin -> Sites, create camera group. `test_location_apis.py`. The UI suite seeds groups through it. |
+| covered | GET | `/REST/site/{siteId}/deletelocation/{locationId}` | Admin -> Sites, delete camera group. `test_location_apis.py` |
+| uncovered | GET | `/REST/site/{siteId}/getalllocations` | Admin -> Sites (seen in the page trace 2026-08-24) |
 | covered | GET | `/REST/site/{siteId}/channel` | `test_camera_apis.py` |
 | covered | GET | `/REST/site/{siteId}/channel/{channelId}/snap` | `test_camera_apis.py` |
-| uncovered | POST | `/REST/enterprise/sitedetails` | Admin -> Sites tab |
-| uncovered | GET | `/REST/site/{siteId}/getsitedetails` | Admin dashboard + Sites |
-| uncovered | GET | `/REST/edge/version/latest` | Admin -> Sites |
-| uncovered | GET | `/REST/edge/version/site/{siteId}/current` | Admin -> Sites |
-| uncovered | GET | `/REST/edge/version/site/{siteId}/previous` | Admin -> Sites |
+| covered | POST | `/REST/enterprise/sitedetails` | Admin -> Sites tab. `test_admin_sites_apis.py` |
+| covered | GET | `/REST/site/{siteId}/getsitedetails` | Admin dashboard + Sites. `test_admin_sites_apis.py` |
+| covered | GET | `/REST/edge/version/latest` | Admin -> Sites. `test_admin_sites_apis.py` |
+| covered | GET | `/REST/edge/version/site/{siteId}/current` | Admin -> Sites. `test_admin_sites_apis.py` |
+| covered | GET | `/REST/edge/version/site/{siteId}/previous` | Admin -> Sites. `test_admin_sites_apis.py` |
 | untriggered | DELETE | `/REST/site/{siteId}` | Site delete (not triggered) |
+
+The legacy group endpoints (`addgroup`, `updategrouploctions`,
+`getchannelsbygroup`, `deletegroup`, `grouptree`) answer but the Admin UI
+never shows what they make. Shapes in the inventory.
 
 ## Rules & analytics (Admin -> Rules)
 
 | Status | Method | Path | Where surfaced |
 |---|---|---|---|
-| uncovered | POST | `/REST/rule/enterprise/{enterpriseId}/search` | Admin -> Rules + dashboard |
-| uncovered | GET | `/REST/analyticschedule/{enterpriseId}/type/{type}` | Admin -> Rules |
-| uncovered | GET | `/REST/webhook/{enterpriseId}` | Admin -> Rules -> Webhooks |
-| uncovered | GET | `/REST/site/analytics/enterprise/{enterpriseId}/licensed` | Views, Search, Rules |
+| covered | POST | `/REST/rule/enterprise/{enterpriseId}/search` | Admin -> Rules + dashboard. `test_admin_rules_apis.py` |
+| covered | GET | `/REST/analyticschedule/{enterpriseId}/type/{type}` | Admin -> Rules. `test_admin_rules_apis.py` |
+| covered | GET | `/REST/webhook/{enterpriseId}` | Admin -> Rules -> Webhooks. `test_admin_rules_apis.py` |
+| covered | GET | `/REST/site/analytics/enterprise/{enterpriseId}/licensed` | Views, Search, Rules. `test_admin_rules_apis.py` |
 | untriggered | POST | `/REST/rule/enterprise/{enterpriseId}/...` (CRUD) | Rule wizard (not triggered) |
 | untriggered | POST | `/REST/webhook` / `/webhook/update` | Webhook CRUD |
 
@@ -80,8 +93,22 @@ Auth: JSESSIONID cookie (not JWT). See `api_clients/auth_helper.py`.
 | Status | Method | Path | Where surfaced |
 |---|---|---|---|
 | covered | POST | `/REST/site/search` | `test_platform_apis.py`, `test_search_api.py` (person/vehicle payloads) |
-| uncovered | POST | `/REST/site/search/event` | Events page -> Search button |
+| covered | POST | `/REST/site/search/event` | Events page -> Search button (pages a search job's events). `test_events_apis.py` |
 | uncovered | GET | `/REST/das/event/type/{typeId}/limit/{n}` | LPR page |
+
+## Bookmarks
+
+| Status | Method | Path | Where surfaced |
+|---|---|---|---|
+| covered | POST | `/REST/clipbookmark` | Bookmark a clip (multipart `snap` + query parameters). `test_bookmark_apis.py`. The UI suite seeds bookmarks through it. |
+| covered | GET | `/REST/clipbookmark/{siteId}` | Bookmarks panel. `test_bookmark_apis.py` |
+| covered | DELETE | `/REST/clipbookmark/{bookmarkId}` | Bookmarks panel, delete (soft delete). `test_bookmark_apis.py` |
+
+## View layouts
+
+| Status | Method | Path | Where surfaced |
+|---|---|---|---|
+| uncovered | POST | `/REST/site/{siteId}/getuserviewlayouts` | Views page. Working payload unknown, answers a wrong `message` (inventory). |
 
 ## Insights / dashboards / widgets
 
@@ -164,10 +191,10 @@ Endpoint pattern: `firestore.googleapis.com/.../Listen/channel?...`
 | Tool | What it does | When to use |
 |---|---|---|
 | **pytest internal-API suite** (`tests/internal_api/`) | The authoritative automated API tests (smoke depth, `@pytest.mark.smoke`) | Always - this is the source of truth for coverage |
-| **Bruno** (`tests/bruno/`) | Human-friendly request collection, plain-file checked into git | Exploring a new endpoint, debugging a failing smoke test, sharing a repro with the platform team - see [BRUNO_GUIDE.md](./BRUNO_GUIDE.md) |
+| **Bruno** (`tests/bruno/`, not yet in this repo) | Human-friendly request collection, plain-file checked into git | Exploring a new endpoint, debugging a failing smoke test, sharing a repro with the platform team - see [BRUNO_GUIDE.md](./BRUNO_GUIDE.md) |
 | **Chrome DevTools network capture** | Capturing what the SPA actually calls | First step in discovering an undocumented endpoint |
 
-Playwright is the test runtime. Bruno is for exploration; it is not a CI dependency.
+pytest is the test runtime. This repo is browser-free. Bruno is for exploration; it is not a CI dependency.
 
 ## Why no swagger?
 

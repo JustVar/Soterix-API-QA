@@ -1,9 +1,5 @@
 """
-QA-API-ADM-USR-01 - Admin -> Users API smoke
-Spec: qa/Automation_QA.xlsx › Test Mapping › row "QA-API-ADM-USR-01"
-Section: I. API
-Owner: JV
-Deployment: After FT
+Admin -> Users API smoke
 
 Catalog rows (see docs/API_ENDPOINTS.md):
 - GET /REST/site/user/{email}
@@ -15,7 +11,6 @@ import pytest
 
 @pytest.mark.api
 @pytest.mark.smoke
-@pytest.mark.qa_doc("QA-API-ADM-USR-01")
 def test_get_site_user_by_email(user_api, login_data):
     """GET /REST/site/user/{email} returns the user's site assignments."""
     email = login_data["username"]
@@ -31,7 +26,6 @@ def test_get_site_user_by_email(user_api, login_data):
 
 @pytest.mark.api
 @pytest.mark.smoke
-@pytest.mark.qa_doc("QA-API-ADM-USR-01")
 def test_get_enterprise_users(user_api, test_enterprise_id):
     """GET /REST/central/user/enterprise/{enterpriseId} returns the user list."""
     r = user_api.get(f"/REST/central/user/enterprise/{test_enterprise_id}")
@@ -51,7 +45,6 @@ def test_get_enterprise_users(user_api, test_enterprise_id):
 
 @pytest.mark.api
 @pytest.mark.smoke
-@pytest.mark.qa_doc("QA-API-ADM-USR-01")
 def test_get_user_profile_by_id(user_api, test_enterprise_id):
     """GET /REST/central/user/enterprise/{enterpriseId}/profile/{profileId} returns profile detail.
 

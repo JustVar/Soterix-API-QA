@@ -45,7 +45,6 @@ class AuthHelper:
     def _load_cached_token(self) -> Optional[str]:
         """Load token from cache if valid"""
         import json as _json
-        import time as _time
 
         print("[AUTH CACHE] Checking for cached token...")
         print(f"[AUTH CACHE] Cache file exists: {os.path.exists(self.CACHE_FILE)}")
@@ -56,7 +55,7 @@ class AuthHelper:
             with open(self.CACHE_FILE, "r", encoding="utf-8") as f:
                 cache = _json.load(f)
 
-            print(f"[AUTH CACHE] Loaded: {cache}")
+            print(f"[AUTH CACHE] Loaded: {dict(cache, token='***') if isinstance(cache, dict) else cache}")
 
             cached_time = cache.get("timestamp", 0)
             age_hours = (time.time() - cached_time) / 3600
@@ -97,7 +96,6 @@ class AuthHelper:
     def _save_token_to_cache(self, token: str) -> None:
         """Save token to cache"""
         import json as _json
-        import time as _time
 
         cache = {"token": token, "base_url": self.base_url, "timestamp": time.time()}
         try:

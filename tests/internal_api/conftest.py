@@ -3,12 +3,14 @@
 # Every fixture that needs internal credentials (QA_USER/QA_PASSWORD or a
 # BOX account) lives here, not in the root conftest, so other suites never
 # see it and a broken internal import cannot stop their collection.
+import html
 import logging
 import os
 
 import pytest
 
 import api_clients.auth_helper as auth_helper_mod
+import api_clients.base_api_client as base_client_mod
 import api_clients.bookmark_api as bookmark_mod
 import api_clients.camera_api as camera_mod
 import api_clients.dashboard_api as dashboard_mod
@@ -267,3 +269,39 @@ def data_write_gate(env_config):
         pytest.skip(
             f"ENV={os.environ.get('ENV', 'qa')} has allow_write={write} "
             f"allow_delete={delete}. Tests that create data need both. See config/env/.")
+
+
+# --------------------------------------------------------------------------
+# HTTP exchanges in the failure report. BaseAPIClient logs every call it
+# makes (api_clients/base_api_client.py). When a test fails in its call
+# phase, the calls made since the test's setup started go into the report as
+# an "HTTP exchanges" block and into the terminal output as a section.
+# Calls made with `requests` directly are not logged.
+# --------------------------------------------------------------------------
+
+@pytest.hookimpl(tryfirst=True)
+def pytest_runtest_setup(item):
+    """Clear the exchange log so a failure shows only this test's calls."""
+    base_client_mod.clear_exchanges()
+
+
+@pytest.hookimpl(hookwrapper=True)
+def pytest_runtest_makereport(item, call):
+    outcome = yield
+    report = outcome.get_result()
+    if report.when != "call" or not report.failed:
+        return
+    exchanges = base_client_mod.recent_exchanges()
+    if not exchanges:
+        return
+    text = base_client_mod.format_exchanges(exchanges)
+    report.sections.append(("HTTP exchanges", text))
+    try:
+        from pytest_html import extras
+    except ImportError:
+        return
+    block = (
+        "<details open><summary>HTTP exchanges</summary>"
+        f"<pre>{html.escape(text)}</pre></details>"
+    )
+    report.extras = getattr(report, "extras", []) + [extras.html(block)]

@@ -2,7 +2,8 @@
 
 > Auth and environment details moved to **`docs/API_SURFACES.md`**, which covers
 > both the internal (`/v-apiserver`) and integration (`/v-integration-api`) APIs.
-> This file now only covers camera/channel discovery.
+> This file covers camera/channel discovery and the HTTP exchange block in
+> failure reports (last section).
 
 ## QA Environment Configuration
 
@@ -99,3 +100,37 @@ python tools/discover_cameras.py --env staging --site 120
 Tests adapt automatically when cameras are added/removed; the `test_channel_ids`
 fixture picks snapshot-capable channels first, then falls back to any channel
 ids discovered for the site.
+
+## HTTP exchanges in failure reports
+
+When an internal-suite test fails, the HTML report and the terminal output
+show the HTTP calls that led to the failure, not only the assertion.
+
+- `BaseAPIClient` (`api_clients/base_api_client.py`) keeps the last 20
+  exchanges per client: method, URL, status, elapsed ms, request body, and
+  the first 500 chars of the response body.
+- `tests/internal_api/conftest.py` clears that log at the start of each
+  test. If the test fails in its call phase, the hook adds an
+  "HTTP exchanges" block to the test's row in the pytest-html report and an
+  "HTTP exchanges" section to the terminal failure output.
+- A passing test carries no block. Calls made with `requests` directly
+  (for example in `test_auth_apis.py`) are not logged.
+
+Example block:
+
+```
+1. POST https://qa.example.invalid/v-apiserver/REST/central/user/login -> 200 (412 ms)
+   request: {"accountid": "qa@example.com", "username": "Example Label", "password": "***"}
+   response: {"status": 2002, "code": 200, "result": [{"JSESSIONID": "***"}]}
+2. GET https://qa.example.invalid/v-apiserver/REST/central/user/session -> 200 (95 ms)
+   response: {"status": 2000, "code": 200, "result": [{"userId": "qa@example.com", ...
+```
+
+Masked before storage, in both request and response text: values of keys
+that contain password, passwd, pwd, token, secret, jsessionid, authorization,
+cookie, api key, or vsaas-key. `JSESSIONID=...` in a URL or cookie string.
+Any bare SHA512 hex digest (the form the login password travels in). Bodies
+longer than 500 chars are cut and end with `... [N chars total]`. Image and
+binary responses show only the content type and byte count.
+
+The log is in memory only. It never reaches `logs/api_requests.log`.

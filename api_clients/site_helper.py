@@ -1,10 +1,10 @@
 """Helper utilities for discovering sites available to a user."""
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 
-def get_available_sites(user_api) -> List[Dict[str, Any]]:
+def get_available_sites(user_api) -> list[dict[str, Any]]:
     """Return a list of site objects available to the logged-in user.
 
     Strategy:
@@ -16,7 +16,7 @@ def get_available_sites(user_api) -> List[Dict[str, Any]]:
     """
     try:
         sess = user_api.get_user_session()
-    except Exception:
+    except Exception:  # noqa: BLE001 - session lookup is best effort; the site/user endpoint is next
         sess = None
 
     # Try session result first
@@ -53,9 +53,9 @@ def get_available_sites(user_api) -> List[Dict[str, Any]]:
                                 return v
                     if isinstance(body, list) and body:
                         return body
-            except Exception:
+            except Exception:  # noqa: BLE001, S110 - site lookup is best effort; return [] below
                 pass
-    except Exception:
+    except Exception:  # noqa: BLE001, S110 - an unexpected session shape must not raise; return [] below
         pass
 
     return []

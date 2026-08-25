@@ -15,11 +15,12 @@ import re
 import time
 import weakref
 from collections import deque
-from typing import Any, Dict, Optional
+from typing import Any
 
 import requests
 import urllib3
-from jsonschema import validate as jsonschema_validate, ValidationError
+from jsonschema import ValidationError
+from jsonschema import validate as jsonschema_validate
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 LOG_PATH = os.path.join(ROOT, "logs", "api_requests.log")
@@ -152,7 +153,7 @@ def format_exchanges(exchanges: list[dict]) -> str:
 
 
 class BaseAPIClient:
-    def __init__(self, base_url: str, token: Optional[str] = None, timeout: int = 15, max_seconds: float = 2.0):
+    def __init__(self, base_url: str, token: str | None = None, timeout: int = 15, max_seconds: float = 2.0):
         # Normalize base_url and ensure API server prefix present.
         # Many deployments mount the API under `/v-apiserver`; if the
         # provided `base_url` does not already include that segment,
@@ -177,9 +178,9 @@ class BaseAPIClient:
             # Default: disable SSL verification for non-production environments
             # This matches auth_helper.py logic and avoids SSL errors with self-signed certs
             env = os.getenv("ENV", "").lower()
-            self.verify = False if env not in ("prod", "production") else True
+            self.verify = env in ("prod", "production")
 
-    def _headers(self) -> Dict[str, str]:
+    def _headers(self) -> dict[str, str]:
         h = {"Accept": "application/json"}
         if self.token:
             # If token looks like a JSESSIONID (hex-like session id), send it as a Cookie
@@ -229,7 +230,7 @@ class BaseAPIClient:
         self._record(method, url, kwargs, elapsed, r, None)
         return r
 
-    def get(self, path: str, params: Dict[str, Any] | None = None) -> requests.Response:
+    def get(self, path: str, params: dict[str, Any] | None = None) -> requests.Response:
         return self._request("GET", path, params=params)
 
     def post(self, path: str, json: Any | None = None, data: Any | None = None,
@@ -244,7 +245,7 @@ class BaseAPIClient:
     def delete(self, path: str) -> requests.Response:
         return self._request("DELETE", path)
 
-    def load_schema(self, schema_name: str) -> Optional[Dict[str, Any]]:
+    def load_schema(self, schema_name: str) -> dict[str, Any] | None:
         if not schema_name:
             return None
         # NOTE: in the old monorepo this path resolved to a directory that did
@@ -255,7 +256,7 @@ class BaseAPIClient:
         with open(path, "r", encoding="utf-8") as f:
             return json.load(f)
 
-    def validate_schema(self, response_json: Any, schema: Optional[Dict[str, Any]]):
+    def validate_schema(self, response_json: Any, schema: dict[str, Any] | None):
         if not schema:
             return True
         try:
@@ -264,7 +265,7 @@ class BaseAPIClient:
         except ValidationError as e:
             raise AssertionError(f"Schema validation failed: {e.message}")
 
-    def assert_response_time(self, response: requests.Response, max_seconds: Optional[float] = None):
+    def assert_response_time(self, response: requests.Response, max_seconds: float | None = None):
         ms = max_seconds or self.max_seconds
         elapsed = response.elapsed.total_seconds()
         if elapsed > ms:

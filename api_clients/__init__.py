@@ -1,10 +1,10 @@
 """API clients package for shared tests."""
 
 __all__ = [
-    "base_api_client",
     "auth_helper",
-    "dashboard_api",
+    "base_api_client",
     "camera_api",
-    "user_api",
+    "dashboard_api",
     "search_api",
+    "user_api",
 ]

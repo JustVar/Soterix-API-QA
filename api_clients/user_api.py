@@ -1,19 +1,19 @@
 """User-related API client."""
 from __future__ import annotations
 
-from typing import Any, Dict, List
+from typing import Any
 
 from .base_api_client import BaseAPIClient
 
 
 class UserAPI(BaseAPIClient):
-    def get_user_session(self) -> Dict[str, Any]:
+    def get_user_session(self) -> dict[str, Any]:
         path = "/REST/central/user/session"
         r = self.get(path)
         r.raise_for_status()
         return r.json()
 
-    def get_user_roles(self) -> List[Dict[str, Any]]:
+    def get_user_roles(self) -> list[dict[str, Any]]:
         path = "/REST/central/userprofile/roles"
         r = self.get(path)
         r.raise_for_status()
@@ -48,6 +48,4 @@ class UserAPI(BaseAPIClient):
         first = result[0]
         if not isinstance(first, dict):
             return False
-        if "userId" not in first:
-            return False
-        return True
+        return "userId" in first

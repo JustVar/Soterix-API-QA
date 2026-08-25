@@ -166,7 +166,7 @@ def test_site_id(user_api, camera_api, login_data):
             tree = camera_api.get_camera_tree(candidate)
             if tree:
                 return candidate
-        except Exception:
+        except Exception:  # noqa: BLE001, S112 - site probe; a failed candidate id is skipped
             continue
     raise RuntimeError("Unable to discover a test site id for the current user")
 
@@ -184,14 +184,14 @@ def test_channel_ids(discovery_helper, test_site_id):
     """Channel ids for the selected test site, preferring snapshot-capable ones."""
     try:
         snapshot_ids = discovery_helper.get_snapshot_capable_channels(test_site_id)
-    except Exception:
+    except Exception:  # noqa: BLE001 - discovery is best effort; fall back to all channels
         snapshot_ids = []
     if snapshot_ids:
         return sorted(snapshot_ids)
 
     try:
         ids = discovery_helper.get_site_channels(test_site_id)
-    except Exception:
+    except Exception:  # noqa: BLE001 - discovery is best effort; fall back to channel 1
         ids = []
     if ids:
         return sorted(ids)

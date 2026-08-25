@@ -1,0 +1,11 @@
+# Ruff settings for Soterix-API-QA.
+# Run: ./venv/Scripts/python.exe -m ruff check .
+# No rules are selected here, so ruff's defaults apply. Only the
+# exceptions below are local to this repo.
+
+[lint.per-file-ignores]
+# CLI tools report every failure to the operator and keep going.
+"tools/**/*.py" = ["BLE001"]
+# The QA Touch reporter is a pytest plugin. It logs and swallows every
+# error so that reporting can never fail a test run.
+"plugins/**/*.py" = ["BLE001"]

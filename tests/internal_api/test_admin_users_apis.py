@@ -38,7 +38,7 @@ def test_get_enterprise_users(user_api, test_enterprise_id):
         sample = users[0]
         # Spot-check fields commonly returned by this endpoint.
         for key in ("userId", "email"):
-            assert key in sample or any(key.lower() in k.lower() for k in sample.keys()), (
+            assert key in sample or any(key.lower() in k.lower() for k in sample), (
                 f"User missing expected field '{key}': keys={list(sample.keys())}"
             )
 

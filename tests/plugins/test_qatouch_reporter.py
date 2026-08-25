@@ -12,11 +12,8 @@ do not require network access or QA Touch credentials.
 from __future__ import annotations
 
 import sys
-import types
 from pathlib import Path
 from unittest.mock import MagicMock
-
-import pytest
 
 # Ensure the repo root is importable so `plugins.qatouch_reporter` resolves
 # the same way pytest itself loads it during a real run.
@@ -24,8 +21,7 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from plugins import qatouch_reporter as qr  # noqa: E402
-
+from plugins import qatouch_reporter as qr
 
 # ---------------------------------------------------------------------------
 # Module-level constants

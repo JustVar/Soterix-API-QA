@@ -17,7 +17,7 @@ class DiscoveryHelper:
         for ep in endpoints:
             try:
                 resp = self.client.get(ep)
-            except Exception:
+            except Exception:  # noqa: BLE001, S112 - probe endpoint; a failure moves on to the next one
                 continue
             if resp is None:
                 continue
@@ -25,7 +25,7 @@ class DiscoveryHelper:
                 continue
             try:
                 data = resp.json()
-            except Exception:
+            except ValueError:
                 continue
             # Common shapes: {"result": [...]}, or list directly
             result = data.get("result") if isinstance(data, dict) else data

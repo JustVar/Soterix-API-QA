@@ -1,7 +1,8 @@
 """Helper to auto-discover user's sites and enterprise IDs after login."""
 from __future__ import annotations
 
-from typing import Dict, List, Optional, Any
+from typing import Any
+
 import requests
 
 
@@ -11,9 +12,9 @@ class SiteDiscovery:
     def __init__(self, base_url: str, auth_token: str):
         self.base_url = base_url.rstrip("/")
         self.auth_token = auth_token
-        self._sites_cache: Optional[List[Dict[str, Any]]] = None
+        self._sites_cache: list[dict[str, Any]] | None = None
     
-    def get_user_sites(self, user_email: str) -> List[Dict[str, Any]]:
+    def get_user_sites(self, user_email: str) -> list[dict[str, Any]]:
         """
         Get all sites available to a user.
         
@@ -47,22 +48,22 @@ class SiteDiscovery:
         
         return sites
     
-    def get_default_site(self, user_email: str) -> Optional[Dict[str, Any]]:
+    def get_default_site(self, user_email: str) -> dict[str, Any] | None:
         """Get the first/default site for a user."""
         sites = self.get_user_sites(user_email)
         return sites[0] if sites else None
     
-    def get_default_site_id(self, user_email: str) -> Optional[int]:
+    def get_default_site_id(self, user_email: str) -> int | None:
         """Get the default site ID for a user."""
         site = self.get_default_site(user_email)
         return site.get("siteId") if site else None
     
-    def get_default_enterprise_id(self, user_email: str) -> Optional[int]:
+    def get_default_enterprise_id(self, user_email: str) -> int | None:
         """Get the enterprise ID from the user's default site."""
         site = self.get_default_site(user_email)
         return site.get("enterpriseId") if site else None
     
-    def get_site_by_name(self, user_email: str, site_name: str) -> Optional[Dict[str, Any]]:
+    def get_site_by_name(self, user_email: str, site_name: str) -> dict[str, Any] | None:
         """Find a specific site by name."""
         sites = self.get_user_sites(user_email)
         for site in sites:

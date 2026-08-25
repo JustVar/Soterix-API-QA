@@ -58,7 +58,7 @@ def load_config():
 
     cfg = getattr(mod, "config", None)
     if not isinstance(cfg, dict):
-        raise RuntimeError(f"{module_path} must define a dict named 'config'")
+        raise RuntimeError(f"{module_path} must define a dict named 'config'")  # noqa: TRY004 - every config failure raises RuntimeError on purpose
 
     _log.info(f"[ENV RESOLVED] ENV='{env}' APP_TYPE='{app_type}' -> {module_path} | base_url={cfg.get('base_url')}")
     return cfg

@@ -2,6 +2,7 @@
 Search APIs smoke (person, vehicle)
 """
 import time
+
 import pytest
 
 

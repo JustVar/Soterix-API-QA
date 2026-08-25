@@ -1,11 +1,10 @@
 """
 Platform APIs smoke (session, dashboard, widgets, camera tree)
 """
-import time
 import json
+import time
 
 import pytest
-import requests
 
 from api_clients.base_api_client import BaseAPIClient
 
@@ -79,7 +78,7 @@ def test_get_camera_snap(api_base_url, api_auth_token, discovered_site_id):
                         break
             if channel_id is not None:
                 break
-    except Exception:
+    except Exception:  # noqa: BLE001 - channel discovery is best effort; fall back to channel 1
         channel_id = None
 
     if channel_id is None:
@@ -98,7 +97,7 @@ def test_get_camera_snap(api_base_url, api_auth_token, discovered_site_id):
         # binary content - check for JPEG/PNG magic bytes
         data = r.content
         assert len(data) > 0, "Snap returned empty binary data"
-        assert data.startswith(b"\xff\xd8") or data.startswith(b"\x89PNG"), "Snap does not look like JPEG/PNG"
+        assert data.startswith((b"\xff\xd8", b"\x89PNG")), "Snap does not look like JPEG/PNG"
 
 
 @pytest.mark.api

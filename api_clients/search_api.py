@@ -2,8 +2,9 @@
 from __future__ import annotations
 
 import json
+from typing import Any
+
 import requests
-from typing import Any, Dict, List
 
 from .base_api_client import BaseAPIClient
 
@@ -12,7 +13,7 @@ class SearchAPI(BaseAPIClient):
     CATEGORY_PERSON = "PERSON"
     CATEGORY_VEHICLE = "VEHICLE"
 
-    def _build_vsearch_request(self, site_id: int, channels: List[int], start_ts: int, end_ts: int, category: str) -> Dict[str, Any]:
+    def _build_vsearch_request(self, site_id: int, channels: list[int], start_ts: int, end_ts: int, category: str) -> dict[str, Any]:
         query = {
             "siteId": site_id,
             "channelList": channels,
@@ -47,12 +48,12 @@ class SearchAPI(BaseAPIClient):
                         first = res[0]
                         if isinstance(first, dict) and "enterpriseId" in first:
                             query["enterpriseId"] = first.get("enterpriseId")
-        except Exception:
+        except Exception:  # noqa: BLE001, S110 - enterpriseId is optional; a failed lookup leaves it out
             pass
         # Try to include enterpriseId if the site metadata exposes it
         return {"queryList": [{"query": query}], "isAddedByRule": False}
 
-    def search_person(self, site_id: int, channels: List[int], start_ts: int, end_ts: int, filters: Dict[str, Any] | None = None) -> Dict[str, Any]:
+    def search_person(self, site_id: int, channels: list[int], start_ts: int, end_ts: int, filters: dict[str, Any] | None = None) -> dict[str, Any]:
         path = "/REST/site/search"
         payload = self._build_vsearch_request(site_id, channels, start_ts, end_ts, self.CATEGORY_PERSON)
         if filters:
@@ -62,7 +63,7 @@ class SearchAPI(BaseAPIClient):
         # Debug: print payload
         try:
             print(f"[SEARCH DEBUG] Payload: {json.dumps(payload, indent=2)}")
-        except Exception:
+        except (TypeError, ValueError):
             print(f"[SEARCH DEBUG] Payload: {payload}")
 
         # Build headers and ensure Content-Type is set
@@ -93,7 +94,7 @@ class SearchAPI(BaseAPIClient):
         resp.raise_for_status()
         return resp.json()
 
-    def search_vehicle(self, site_id: int, channels: List[int], start_ts: int, end_ts: int, filters: Dict[str, Any] | None = None) -> Dict[str, Any]:
+    def search_vehicle(self, site_id: int, channels: list[int], start_ts: int, end_ts: int, filters: dict[str, Any] | None = None) -> dict[str, Any]:
         path = "/REST/site/search"
         payload = self._build_vsearch_request(site_id, channels, start_ts, end_ts, self.CATEGORY_VEHICLE)
         if filters:
@@ -102,7 +103,7 @@ class SearchAPI(BaseAPIClient):
         # Debug: print payload
         try:
             print(f"[SEARCH DEBUG] Payload: {json.dumps(payload, indent=2)}")
-        except Exception:
+        except (TypeError, ValueError):
             print(f"[SEARCH DEBUG] Payload: {payload}")
 
         # Build headers and ensure Content-Type is set

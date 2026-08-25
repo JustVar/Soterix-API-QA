@@ -104,7 +104,7 @@ def test_central_login_rejects_invalid_credentials(api_base_url):
     body = {}
     try:
         body = r.json()
-    except Exception:
+    except ValueError:
         pass
     token = body.get("token") or body.get("access_token") or (body.get("data") or {}).get("token")
     assert not token, f"Invalid creds yielded a token: status={r.status_code} body={r.text[:300]}"

@@ -1,7 +1,6 @@
 """Helper to dynamically fetch enterpriseId from Site Status API."""
 from __future__ import annotations
 
-from typing import Optional
 import requests
 
 
@@ -11,7 +10,7 @@ class EnterpriseHelper:
     def __init__(self, base_url: str, auth_token: str):
         self.base_url = base_url.rstrip("/")
         self.auth_token = auth_token
-        self._enterprise_id_cache: Optional[int] = None
+        self._enterprise_id_cache: int | None = None
     
     def get_enterprise_id(self, site_id: int) -> int:
         """

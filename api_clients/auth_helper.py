@@ -1,11 +1,9 @@
 """Authentication helper for API clients."""
 from __future__ import annotations
 
+import hashlib
 import os
 import time
-from typing import Optional
-
-import hashlib
 
 import requests
 import urllib3
@@ -14,7 +12,7 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 # Determine verification behaviour: disable verification for non-production envs
 _ENV = os.getenv("ENV", "").lower()
-_VERIFY = False if _ENV not in ("prod", "production") else True
+_VERIFY = _ENV in ("prod", "production")
 
 # The web app authenticates against this endpoint. It is NOT the same one as
 # /REST/central/user/auth/login, which requires a `captcha` parameter that only
@@ -36,13 +34,13 @@ class AuthHelper:
         if not b.endswith("/v-apiserver"):
             b = b + "/v-apiserver"
         self.base_url = b
-        self._token: Optional[str] = None
+        self._token: str | None = None
         self._token_expiry: float = 0.0
         # Session cache settings
         self.CACHE_FILE = ".session_cache"
         self.CACHE_MAX_AGE_HOURS = 8
 
-    def _load_cached_token(self) -> Optional[str]:
+    def _load_cached_token(self) -> str | None:
         """Load token from cache if valid"""
         import json as _json
 
@@ -63,7 +61,7 @@ class AuthHelper:
                 print(f"[AUTH] Cache expired ({age_hours:.1f} hours old)")
                 try:
                     os.remove(self.CACHE_FILE)
-                except Exception:
+                except OSError:
                     pass
                 return None
 
@@ -85,11 +83,11 @@ class AuthHelper:
                 print("[AUTH] Cached token invalid, will re-login")
                 try:
                     os.remove(self.CACHE_FILE)
-                except Exception:
+                except OSError:
                     pass
                 return None
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 - a corrupt cache falls through to a fresh login
             print(f"[AUTH] Cache read error: {e}")
             return None
 
@@ -102,7 +100,7 @@ class AuthHelper:
             with open(self.CACHE_FILE, "w", encoding="utf-8") as f:
                 _json.dump(cache, f)
             print("[AUTH] Token saved to cache")
-        except Exception as e:
+        except OSError as e:
             print(f"[AUTH] Failed to save token cache: {e}")
 
     def _validate_token(self, token: str) -> bool:
@@ -112,7 +110,7 @@ class AuthHelper:
             url = f"{self.base_url}/REST/central/user/session"
             r = requests.get(url, headers=headers, verify=_VERIFY, timeout=10)
             return r.status_code == 200
-        except Exception:
+        except requests.RequestException:
             return False
     def _api_login(self, email: str, password: str) -> str:
         """Authenticate over HTTP and return the JSESSIONID. No browser involved.
@@ -166,7 +164,7 @@ class AuthHelper:
         try:
             result = (r.json().get("result") or [{}])[0]
             token = result.get("JSESSIONID")
-        except Exception:
+        except Exception:  # noqa: BLE001, S110 - any body shape falls back to the cookie
             pass
         token = token or r.cookies.get("JSESSIONID")
 
@@ -202,7 +200,7 @@ class AuthHelper:
         self._token_expiry = time.time() + 1800
         try:
             self._save_token_to_cache(token)
-        except Exception:
+        except Exception:  # noqa: BLE001, S110 - a cache write failure must not fail the login
             pass
         print("[AUTH] API login succeeded")
         return token

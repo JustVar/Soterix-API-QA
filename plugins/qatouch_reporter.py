@@ -100,7 +100,7 @@ def _format_duration(seconds: float) -> str:
     if seconds is None or seconds < 0:
         return ''
     if seconds < 1.0:
-        return f'{int(round(seconds * 1000))}ms'
+        return f'{round(seconds * 1000)}ms'
     return f'{seconds:.1f}s'
 
 

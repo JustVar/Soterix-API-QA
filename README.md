@@ -8,6 +8,12 @@ isolated suites**, one per API surface:
 | `tests/internal_api/` | internal `/v-apiserver` (everything the web app does) | session cookie | `QA_USER` / `QA_PASSWORD` |
 | `tests/integration_api/` | third-party `/v-integration-api` (partner API) | static `x-vsaas-key` header | `VSAAS_INTEGRATION_KEY` |
 
+One naming trap, worth stating once: **"Integration API" names the partner
+product surface** (`/v-integration-api`), not the test level. End-to-end
+tests of internal endpoints are internal-suite work and live in
+`tests/internal_api/`, whatever their depth. When someone says "integration
+tests", ask which of the two they mean.
+
 Full contracts, environments, and known-good test data: **`docs/API_SURFACES.md`**.
 Every internal endpoint found or tested, with request and response shapes:
 **`docs/INTERNAL_API_INVENTORY.md`**.

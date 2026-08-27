@@ -34,6 +34,13 @@ config = {
             "password_env": "QA_US_PASSWORD",
             "default_site_id": None,
         },
+        # Shared Videonetics account used by the team's API flow tests
+        # (PR #1). Password lives in .env.
+        "videonetics": {
+            "email": "person@example.com",
+            "password_env": "QA_VIDEONETICS_PASSWORD",
+            "default_site_id": None,
+        },
     },
 
     # Default box if not specified

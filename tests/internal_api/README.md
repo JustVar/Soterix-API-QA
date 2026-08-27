@@ -1,7 +1,9 @@
 # Internal API tests (/v-apiserver)
 
 ## Overview
-This folder holds the internal-API suite: smoke-depth tests (marked `@pytest.mark.smoke`) that quickly validate core platform functionality across environments. The suite currently collects 39 tests covering auth, user/session, admin, dashboard, camera, camera groups (locations), bookmarks, events, and search endpoints. Suite fixtures live in `conftest.py` in this folder.
+This folder holds the internal-API suite: smoke-depth tests (marked `@pytest.mark.smoke`) that quickly validate core platform functionality across environments. The suite currently collects 54 tests (39 live smoke tests, the key lifecycle test, and 14 offline exchange-log unit tests) covering auth, user/session, admin, dashboard, camera, camera groups (locations), bookmarks, events, search, and API-integration key management endpoints. Suite fixtures live in `conftest.py` in this folder.
+
+`test_api_integration_key_apis.py` walks the API Integration key lifecycle (create, disable, enable, delete) with a throwaway key and verifies each state change against the third-party `/v-integration-api` surface. It writes, so it is gated by the env `allow_write`/`allow_delete` flags.
 
 `test_location_apis.py` and `test_bookmark_apis.py` are contract tests: the
 UI suite (Soterix-WebApp-QA) seeds its test data through those endpoints,

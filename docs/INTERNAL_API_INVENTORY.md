@@ -6,7 +6,8 @@ Every internal endpoint this repo has found or tested, one row each. Read
 test covers it. This file holds the request and response shapes and the
 date each contract was last confirmed on QA.
 
-Last verified: **2026-08-24** (QA, `tests/internal_api` run: 38 passed,
+Last verified: **2026-08-27** (QA; key-management rows verified live by
+`test_api_integration_key_apis.py`; prior full run 2026-08-24: 38 passed,
 1 skipped for missing SSO credentials).
 
 ## How to read the table
@@ -188,3 +189,22 @@ repo has called them.
 3. Keep `API_ENDPOINTS.md` in step: it holds the coverage status and the
    screen that surfaces the endpoint.
 4. Bump "Last verified" at the top after a full `tests/internal_api` run.
+
+## API integration keys (Admin > Integrations > API Integration)
+
+These manage the `x-vsaas-key` credentials for the third-party
+`/v-integration-api` surface (see `API_SURFACES.md` section 2). Enterprise
+admin session required. Disable and delete take effect on the surface
+(401) within seconds.
+
+| Method and path | What it does | Request | Response and status | Verified on QA | Used by | Notes |
+|---|---|---|---|---|---|---|
+| `GET /REST/api/integration/key/{enterpriseId}` | List keys of an enterprise | none | 200, status 2000, result `[{key, enterpriseId, name, host[], description[], status, createdAt, updatedAt, lastAccessedAt}]` | 2026-08-27 | `test_api_integration_key_apis.py`, Admin UI | `status` 1 enabled, 0 disabled. The key value is returned in clear. |
+| `POST /REST/api/integration/key/generate` | Create a key | JSON `{enterpriseId, name, host[], description[]}` | 200, status 2005 "Successfully created!", result `[the new key object]` | 2026-08-27 | `test_api_integration_key_apis.py`, Admin UI | `host[]` and `description[]` are parallel arrays (one description per host row). |
+| `PUT /REST/api/integration/key/{key}` | Edit name/hosts/descriptions | same JSON as generate | 200, status 2001 "Successfully Updated!" | 2026-08-27 | Admin UI; used once to describe the QA key | |
+| `GET /REST/api/integration/key/{key}/status/{0\|1}` | Disable / enable | none | 200 | 2026-08-27 | `test_api_integration_key_apis.py`, Admin UI toggle | A disabled key gets 401 on the surface. NC-20258 (toggle 404) fixed in 1.7.8. |
+| `DELETE /REST/api/integration/key/{key}` | Delete a key | none | 200 | 2026-08-27 | `test_api_integration_key_apis.py`, Admin UI | Deleted key gets 401 on the surface and leaves the list. |
+
+The `host[]` allowlist did not restrict callers in live checks (a key
+listing only the QA host worked from an outside IP). Treat it as
+documentation until the platform team says what it enforces.

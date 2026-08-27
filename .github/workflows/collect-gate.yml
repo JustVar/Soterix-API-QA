@@ -3,8 +3,8 @@ name: collect-gate
 # Cheap merge gate: proves a change breaks no suite's imports or fixture
 # wiring. Needs no credentials and sends no live traffic - collection and
 # setup-plan never execute tests, and the two suites it does run are
-# offline (plugin unit tests) or self-skipping (integration scaffold
-# without a key).
+# offline (plugin unit tests) or self-skipping (the integration suite
+# skips every test when no key is set).
 
 on:
   push:

@@ -19,6 +19,13 @@ config = {
             "password_env": "STAGE_PASSWORD",
             "default_site_id": None,  # TBD - update when known
         },
+        # Shared Videonetics account used by the team's API flow tests
+        # (PR #1, run_e2e.bat targets staging). Password lives in .env.
+        "videonetics": {
+            "email": "person@example.com",
+            "password_env": "STAGE_VIDEONETICS_PASSWORD",
+            "default_site_id": None,
+        },
     },
 
     # Default box if not specified

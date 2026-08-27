@@ -5,10 +5,22 @@ authenticated by a static `x-vsaas-key` header. The Swagger UI is the source
 of truth for the endpoint list (it grows over time):
 <https://qa.example.invalid/v-integration-api/swagger-ui/index.html>
 
-Status: **scaffold.** Blocked on an API key being issued. Store it as
-`VSAAS_INTEGRATION_KEY` in `.env` when it arrives. `conftest.py` and
-`test_scaffold.py` here already wire the fixtures, and the suite skips
-cleanly until the key exists.
+Status: **built and passing** (17 tests, verified live 2026-08-27):
+
+- `test_endpoint_sweep.py`: every documented endpoint, one row each in
+  `data/endpoints.py`, checked against its observed response contract
+  (data list, portal pointer, or stream session). New endpoint in the
+  swagger = one new catalogue row.
+- `test_auth.py`: the auth boundary (no key, bogus key, empty key all
+  answer 401 with the stable status-9581 error body).
+- The key create/disable/enable/delete lifecycle lives in
+  `tests/internal_api/test_api_integration_key_apis.py`, because key
+  management is an internal-API feature. Only key USE belongs here.
+
+The suite authenticates with the QA tenant key named
+**"QA Automation - DO NOT DELETE"** (Admin > Integrations > API
+Integration). Store its value as `VSAAS_INTEGRATION_KEY` in `.env`. The
+suite skips cleanly on machines without it.
 
 ## Where everything goes
 

@@ -1,6 +1,6 @@
 # API Surfaces, Auth Contracts, and Environments
 
-Last verified: **2026-08-24**
+Last verified: **2026-08-27** (section 2), **2026-08-24** (section 1)
 
 There are **two separate APIs** behind the same hostnames. They have different
 base paths, different authentication, and different availability per environment.
@@ -155,16 +155,36 @@ A single static API key in a header. No login, no session, no expiry handling:
 x-vsaas-key: <key>
 ```
 
-Missing or wrong key returns `401` with `status: 9581`,
-`"Invalid API Key in request headers."`
+Missing, wrong, empty, or disabled key returns `401` with `status: 9581`,
+`"Invalid API Key in request headers."` (verified live 2026-08-27).
 
-**The key is not yet stored in `.env`.** Add it as `VSAAS_INTEGRATION_KEY` when
-issued, and never commit it.
+The key goes in `.env` as `VSAAS_INTEGRATION_KEY`. Never commit it. The QA
+tenant carries a durable key named **"QA Automation - DO NOT DELETE"** for
+the test suite. Keys are managed in the product under Admin > Integrations >
+API Integration, backed by internal endpoints (session auth, enterprise
+admin):
+
+```
+GET    /v-apiserver/REST/api/integration/key/{enterpriseId}      list
+POST   /v-apiserver/REST/api/integration/key/generate            create
+       body: {enterpriseId, name, host[], description[]}
+PUT    /v-apiserver/REST/api/integration/key/{key}               update
+GET    /v-apiserver/REST/api/integration/key/{key}/status/{0|1}  disable/enable
+DELETE /v-apiserver/REST/api/integration/key/{key}               delete
+```
+
+Disable and delete take effect on the surface (401) within seconds; the
+lifecycle test in `tests/internal_api/test_api_integration_key_apis.py`
+verifies the whole cycle. Note: a key's `host[]` allowlist did NOT restrict
+callers in live checks (a key listing only the QA host worked from an
+outside IP) - treat `host` as documentation, and ask the platform team what
+it is meant to enforce.
 
 ### Endpoints
 
-Snapshot from 2026-08-05. **The Swagger UI above is the source of truth** - new
-endpoints are being added over time, so don't treat this list as complete.
+Snapshot verified live on 2026-08-27. **The Swagger UI above is the source
+of truth** - new endpoints are being added over time, so don't treat this
+list as complete.
 
 **Sites**
 - `/REST/site`
@@ -187,6 +207,24 @@ endpoints are being added over time, so don't treat this list as complete.
 - `/REST/stream/session`
 - `/REST/stream/{siteid}/startlive/{channelid}`
 - `/REST/stream/{siteid}/startarchive/{channelid}/{starttimestamp}`
+
+Response contracts that a naive "assert 200" gets wrong (all verified live;
+the sweep in `tests/integration_api/` encodes them per endpoint):
+
+- `/REST/event` and `/REST/stream` answer 200 with **no data**: a portal
+  pointer message plus a `streamingServerUrl`. They are navigation hints,
+  not data endpoints.
+- A bad or missing sub-resource id answers **400** ("Runtime exception
+  occurred!" or "check your request parameters"), not 404.
+- `startlive`/`startarchive` answer 200 "Successfully created!" and return
+  a real WebRTC `streamurl`. They **create a server-side streaming
+  session**, so the surface is not strictly read-only in effect. The TTL of
+  a session whose stream URL is never connected is unknown. Ask the
+  platform team and record the answer here.
+- Jira NC-20224 (channel status/snap) and NC-20225 (channel groups) are
+  marked Complete, but their endpoints were **not reachable on QA** on
+  2026-08-27 (404 on every path variant probed). Raised as a gap; re-check
+  the swagger before assuming this list is stale.
 
 ### Why this matters for test design
 
@@ -244,7 +282,8 @@ QA testing happens mainly on the india box. Sign in with your own account.
 
 ## Open items
 
-- Obtain and store the integration API key (`VSAAS_INTEGRATION_KEY`).
+- ~~Obtain and store the integration API key~~ done 2026-08-27: the QA
+  tenant key "QA Automation - DO NOT DELETE" backs `VSAAS_INTEGRATION_KEY`.
 - Integration API is QA-only; re-check stage/prod when it is rolled out.
 - `/REST/sso/login` parameter contract is still unknown.
 - `POST /REST/site/{site}/getuserviewlayouts` working payload is unknown

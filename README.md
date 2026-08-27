@@ -69,7 +69,7 @@ docs/               API_SURFACES.md (start here), INTERNAL_API_INVENTORY.md, end
 plugins/            QA Touch result reporter (dormant unless --qatouch-upload)
 schemas/            OpenAPI snapshots + response schemas used for validation
 tests/internal_api/     internal-API suite (fixtures in its conftest.py)
-tests/integration_api/  integration-API suite (fixtures in its conftest.py, pending key)
+tests/integration_api/  integration-API suite (17 tests; key auth, endpoint sweep)
 tests/plugins/      unit tests for the reporter plugin
 tools/              discovery + QA Touch client utilities
 ```
@@ -83,8 +83,7 @@ the other down.
 ## Environments
 
 Select with `ENV=qa|stage|prod` (default `qa`). Hosts are defined in
-`config/env/*.py`. Credentials come from `.env`, copied from `.env.template`
-(the variable ordering comment there matters). The integration surface
+`config/env/*.py`. Credentials come from `.env`, copied from `.env.template`. The integration surface
 exists on QA only: its base URL is the `integration_api_base_url` key, which
 is `None` on stage/prod so integration tests skip there. Do not invent new
 `ENV` values. Add config keys instead.

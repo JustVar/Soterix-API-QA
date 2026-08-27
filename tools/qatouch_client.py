@@ -18,6 +18,7 @@ Endpoints (verified 2026-02-18):
     POST /api/v1/projects
     POST /api/v1/modules
     POST /api/v1/testCase                                (create case - verified 02/19)
+    POST /api/v1/testCase/steps                          (create STEP case - verified 08/27)
     POST /api/v1/milestone                               (create release/milestone)
   Results:
     PATCH /api/v1/testRunResults/status/multiple
@@ -30,6 +31,14 @@ Endpoints (verified 2026-02-18):
     - Type, Priority, Mode, Tags are IGNORED (default to Acceptance/Critical)
     - Response does NOT return case_key (must fetch from list to find it)
     - Set Mode=Automation and Tags via QA Touch UI after creation
+    - `testCase` (plain) makes the case default to the "Exploratory Session"
+      template on this account, and those cases do NOT appear in
+      getAllTestCases. Use create_test_case_with_steps() for step cases
+      ("Test case (Steps)" template), matching qatouch-mcp-server.
+    - getAllTestCases does not return cases from nested sub-modules (e.g.
+      Admin > Integrations, section xwb5m). They exist and show in the UI
+      but are invisible to find_case_by_title. Read a created case_key from
+      the QA Touch UI or MCP when the list endpoint cannot see it.
 
 Auth: headers api-token + domain.  Base URL: https://api.qatouch.com
 Rate limit: 50 requests/minute (HTTP 429 on excess).
@@ -195,6 +204,59 @@ class QATouchClient:
         data = resp.json()
         if not data.get('success', True):
             raise QATouchError(f'create_test_case error: {data.get("error_msg", data)}')
+        return data
+
+    def create_test_case_with_steps(
+        self,
+        project_key: str,
+        section_key: str,
+        title: str,
+        steps: list[tuple[str, str]],
+        description: str = '',
+        precondition: str = '',
+        reference: str = '',
+        estimate: str = '',
+    ) -> dict[str, Any]:
+        """Create a step-based test case (template "Test Case (Steps)").
+
+        Use this, not create_test_case: the plain /testCase endpoint makes
+        the account default to the "Exploratory Session" template, and those
+        cases do not show in getAllTestCases. This posts to /testCase/steps
+        with the steps_template shape QA Touch expects, matching the
+        official qatouch-mcp-server.
+
+        Args:
+            steps: ordered list of (step_text, expected_result) pairs.
+                   QA Touch expects at least one; keep expected non-empty.
+
+        Returns the API response. As with create_test_case it does not echo
+        the case_key; use find_case_by_title() afterwards to read it.
+        """
+        if not steps:
+            raise QATouchError('create_test_case_with_steps needs at least one step')
+        steps_template = {
+            str(i): {'steps': step, 'expected_result': expected}
+            for i, (step, expected) in enumerate(steps)
+        }
+        params = {
+            'projectKey': project_key,
+            'sectionKey': section_key,
+            'caseTitle': title,
+            'description': description,
+            'precondition': precondition,
+            'reference': reference,
+            'estimate': estimate,
+            'steps_template': _json.dumps(steps_template),
+        }
+        url = self._url('/api/v1/testCase/steps')
+        resp = self.session.post(url, params=params, timeout=self.timeout)
+        if resp.status_code not in (200, 201):
+            raise QATouchError(
+                f'create_test_case_with_steps failed: {resp.status_code} {resp.text}')
+        data = resp.json()
+        if not data.get('success', True):
+            raise QATouchError(
+                f'create_test_case_with_steps error: {data.get("error_msg", data)}')
         return data
 
     def find_case_by_title(

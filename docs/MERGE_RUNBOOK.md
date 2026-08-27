@@ -50,7 +50,7 @@ unavoidable, coordinate first, run `git fetch company`, and use
 
    ```bash
    pytest tests/integration_api
-   pytest tests/ --collect-only -q     # proves you broke no other suite's imports
+   pytest --collect-only -q     # proves you broke no other suite's imports
    ```
 
 ## Owner (bringing team merges home)
@@ -88,8 +88,8 @@ comm -23 <(git diff --name-only $(git merge-base $PRE company/main) company/main
 # eyeball each one's diff before committing
 
 git commit          # then validate before pushing:
-pytest tests/ --collect-only -q
-pytest tests/ --setup-plan -q          # catches deleted/renamed fixtures, no live calls
+pytest --collect-only -q
+pytest --setup-plan -q          # catches deleted/renamed fixtures, no live calls
 pytest tests/plugins                   # offline unit tests
 git push                               # now fast-forwards both orgs
 ```

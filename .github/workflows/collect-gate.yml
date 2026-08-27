@@ -20,10 +20,10 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install -r requirements.txt
-      - name: Imports and fixture wiring, both suites
+      - name: Imports and fixture wiring, whole repo (root, so a stray top-level test tree is caught too)
         run: |
-          pytest tests/ --collect-only -q
-          pytest tests/ --setup-plan -q
+          pytest --collect-only -q
+          pytest --setup-plan -q
       - name: Offline suites
         run: |
           pytest tests/plugins

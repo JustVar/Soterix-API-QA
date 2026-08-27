@@ -46,8 +46,8 @@ no credentials, and CI runs the same ones via
 `.github/workflows/collect-gate.yml`:
 
 ```powershell
-venv\Scripts\pytest tests\ --collect-only -q
-venv\Scripts\pytest tests\ --setup-plan -q
+venv\Scripts\pytest --collect-only -q
+venv\Scripts\pytest --setup-plan -q
 ```
 
 If internal-suite login fails, **read the error**. It says which of the

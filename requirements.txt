@@ -20,5 +20,5 @@ PyYAML==6.0.3
 # Ruff moves rules between minor releases, so a floating pin makes a lint
 # verdict depend on when a machine last installed. The UI repo and this one
 # had drifted to 0.16.1 and 0.16.2 while both said ruff>=0.15.
-ruff==0.16.2
+ruff==0.16.5
 

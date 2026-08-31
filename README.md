@@ -30,8 +30,25 @@ run installs in seconds and launches no browser.
 ```powershell
 python -m venv venv
 venv\Scripts\pip install -r requirements.txt
+venv\Scripts\pip install -e ..\soterix-qa-shared   # the shared QA pipeline
 copy .env.template .env      # then fill in credentials
 ```
+
+The third line is not optional. `plugins/` and `tools/` here are thin shims
+over `soterix_qa_shared`, so without it every pytest run stops at
+`ImportError: ... soterix-qa-shared is not installed`. Measured on a clean
+venv following the two lines above: `pytest tests/plugins` would not even
+collect. It needs no credential, because it installs the sibling checkout
+from disk rather than the private repo. Clone it beside this one:
+
+```powershell
+cd ..
+git clone https://github.com/Soterix-Systems/SOTERIX-QA-SHARED.git soterix-qa-shared
+```
+
+`requirements-shared.txt` is the CI path and installs the same package from
+a pinned tag over SSH. Do not use it locally: it needs a deploy key, and an
+editable sibling lets you test a package change before tagging it.
 
 Run the suite you are working on, not the whole tree. The two suites need
 different credentials, and a bare `pytest` errors on whichever one you lack:

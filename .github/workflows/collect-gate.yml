@@ -34,8 +34,15 @@ jobs:
       - run: pip install -r requirements-shared.txt
       - name: Imports and fixture wiring, whole repo (root, so a stray top-level test tree is caught too)
         run: |
-          pytest --collect-only -q
-          pytest --setup-plan -q
+          pytest --collect-only
+          pytest --setup-plan
+      # pytest exits 5 on zero collected, so the step above already catches a
+      # suite that vanishes. Nothing catches one that SHRINKS. The two API
+      # surfaces are counted separately: one can lose its tests while the
+      # combined number still looks healthy.
+      - name: Collected-test floor
+        run: python tools/collect_floor.py
+
       - name: Offline suites
         run: |
           pytest tests/plugins

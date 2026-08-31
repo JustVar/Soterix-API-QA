@@ -1,7 +1,8 @@
 name: collect-gate
 
 # Cheap merge gate: proves a change breaks no suite's imports or fixture
-# wiring. Needs no credentials and sends no live traffic - collection and
+# wiring. Sends no live traffic. It now needs ONE credential - a read-only
+# deploy key for the private shared package - collection and
 # setup-plan never execute tests, and the two suites it does run are
 # offline (plugin unit tests) or self-skipping (the integration suite
 # skips every test when no key is set).
@@ -23,7 +24,14 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      # requirements.txt now installs soterix-qa-shared from a private
+      # repo over SSH. The deploy key is read-only and scoped to that repo
+      # alone: it cannot push, and it cannot read this repository.
+      - uses: webfactory/ssh-agent@v0.9.1
+        with:
+          ssh-private-key: ${{ secrets.QA_SHARED_DEPLOY_KEY }}
       - run: pip install -r requirements.txt
+      - run: pip install -r requirements-shared.txt
       - name: Imports and fixture wiring, whole repo (root, so a stray top-level test tree is caught too)
         run: |
           pytest --collect-only -q

@@ -97,109 +97,127 @@
       "case_key": "vavxgp",
       "case_title": "API - Integration surface answers every documented endpoint",
       "module": "API Integrations",
-      "auto_matched": false
+      "auto_matched": false,
+      "reviewed": true
     },
     "tests/integration_api/test_endpoint_sweep.py::test_get_endpoint[site_by_id]": {
       "case_key": "vavxgp",
       "case_title": "API - Integration surface answers every documented endpoint",
       "module": "API Integrations",
-      "auto_matched": false
+      "auto_matched": false,
+      "reviewed": true
     },
     "tests/integration_api/test_endpoint_sweep.py::test_get_endpoint[channel_list_all_sites]": {
       "case_key": "vavxgp",
       "case_title": "API - Integration surface answers every documented endpoint",
       "module": "API Integrations",
-      "auto_matched": false
+      "auto_matched": false,
+      "reviewed": true
     },
     "tests/integration_api/test_endpoint_sweep.py::test_get_endpoint[channel_list_by_site]": {
       "case_key": "vavxgp",
       "case_title": "API - Integration surface answers every documented endpoint",
       "module": "API Integrations",
-      "auto_matched": false
+      "auto_matched": false,
+      "reviewed": true
     },
     "tests/integration_api/test_endpoint_sweep.py::test_get_endpoint[channel_by_id]": {
       "case_key": "vavxgp",
       "case_title": "API - Integration surface answers every documented endpoint",
       "module": "API Integrations",
-      "auto_matched": false
+      "auto_matched": false,
+      "reviewed": true
     },
     "tests/integration_api/test_endpoint_sweep.py::test_get_endpoint[channel_streaming_parameter]": {
       "case_key": "vavxgp",
       "case_title": "API - Integration surface answers every documented endpoint",
       "module": "API Integrations",
-      "auto_matched": false
+      "auto_matched": false,
+      "reviewed": true
     },
     "tests/integration_api/test_endpoint_sweep.py::test_get_endpoint[channel_streaming_capability]": {
       "case_key": "vavxgp",
       "case_title": "API - Integration surface answers every documented endpoint",
       "module": "API Integrations",
-      "auto_matched": false
+      "auto_matched": false,
+      "reviewed": true
     },
     "tests/integration_api/test_endpoint_sweep.py::test_get_endpoint[channel_image_parameter]": {
       "case_key": "vavxgp",
       "case_title": "API - Integration surface answers every documented endpoint",
       "module": "API Integrations",
-      "auto_matched": false
+      "auto_matched": false,
+      "reviewed": true
     },
     "tests/integration_api/test_endpoint_sweep.py::test_get_endpoint[event_portal_pointer]": {
       "case_key": "vavxgp",
       "case_title": "API - Integration surface answers every documented endpoint",
       "module": "API Integrations",
-      "auto_matched": false
+      "auto_matched": false,
+      "reviewed": true
     },
     "tests/integration_api/test_endpoint_sweep.py::test_get_endpoint[event_snap]": {
       "case_key": "vavxgp",
       "case_title": "API - Integration surface answers every documented endpoint",
       "module": "API Integrations",
-      "auto_matched": false
+      "auto_matched": false,
+      "reviewed": true
     },
     "tests/integration_api/test_endpoint_sweep.py::test_get_endpoint[stream_portal_pointer]": {
       "case_key": "vavxgp",
       "case_title": "API - Integration surface answers every documented endpoint",
       "module": "API Integrations",
-      "auto_matched": false
+      "auto_matched": false,
+      "reviewed": true
     },
     "tests/integration_api/test_endpoint_sweep.py::test_get_endpoint[stream_session]": {
       "case_key": "vavxgp",
       "case_title": "API - Integration surface answers every documented endpoint",
       "module": "API Integrations",
-      "auto_matched": false
+      "auto_matched": false,
+      "reviewed": true
     },
     "tests/integration_api/test_endpoint_sweep.py::test_get_endpoint[stream_start_live]": {
       "case_key": "vavxgp",
       "case_title": "API - Integration surface answers every documented endpoint",
       "module": "API Integrations",
-      "auto_matched": false
+      "auto_matched": false,
+      "reviewed": true
     },
     "tests/integration_api/test_endpoint_sweep.py::test_get_endpoint[stream_start_archive]": {
       "case_key": "vavxgp",
       "case_title": "API - Integration surface answers every documented endpoint",
       "module": "API Integrations",
-      "auto_matched": false
+      "auto_matched": false,
+      "reviewed": true
     },
     "tests/integration_api/test_auth.py::test_no_key_is_rejected": {
       "case_key": "bjPrDQ",
       "case_title": "API - Integration API rejects a missing key",
       "module": "API Integrations",
-      "auto_matched": false
+      "auto_matched": false,
+      "reviewed": true
     },
     "tests/integration_api/test_auth.py::test_bogus_key_is_rejected": {
       "case_key": "Z8v3Kp",
       "case_title": "API - Integration API rejects a bogus key",
       "module": "API Integrations",
-      "auto_matched": false
+      "auto_matched": false,
+      "reviewed": true
     },
     "tests/integration_api/test_auth.py::test_empty_key_is_rejected": {
       "case_key": "RgkVm1",
       "case_title": "API - Integration API rejects an empty key",
       "module": "API Integrations",
-      "auto_matched": false
+      "auto_matched": false,
+      "reviewed": true
     },
     "tests/internal_api/test_api_integration_key_apis.py::test_key_lifecycle": {
       "case_key": "dy8Kv0",
       "case_title": "API - Integration key lifecycle (create, disable, enable, delete)",
       "module": "API Integrations",
-      "auto_matched": false
+      "auto_matched": false,
+      "reviewed": true
     }
   }
 }

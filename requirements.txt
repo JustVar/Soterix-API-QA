@@ -1,12 +1,23 @@
 # Soterix-API-QA -- deliberately browser-free.
 # Adding playwright/pytest-playwright here would defeat the point of this repo:
 # API auth is plain HTTP (docs/API_SURFACES.md) and must stay that way.
-pytest
-requests
-python-dotenv
-pytest-html
-jsonschema
-PyYAML
+#
+# Pinned exactly. This is an application, not a library: nothing installs it
+# alongside another project's dependencies, so there is no conflict to cause,
+# and an unpinned requirement means the merge gate installs whatever PyPI has
+# that morning. Identical code could pass yesterday and fail today.
+#
+# Dependabot bumps these as PRs the gate has to prove, so "pinned" does not
+# become "stale". See .github/dependabot.yml.
+pytest==9.1.1
+requests==2.34.2
+python-dotenv==1.2.2
+pytest-html==4.2.0
+jsonschema==4.26.0
+PyYAML==6.0.3
 
-# Linting / formatting
-ruff>=0.15
+# Linting / formatting.
+# Ruff moves rules between minor releases, so a floating pin makes a lint
+# verdict depend on when a machine last installed. The UI repo and this one
+# had drifted to 0.16.1 and 0.16.2 while both said ruff>=0.15.
+ruff==0.16.2

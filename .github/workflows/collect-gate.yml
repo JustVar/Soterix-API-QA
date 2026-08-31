@@ -11,6 +11,10 @@ on:
     branches: [main]
   pull_request:
 
+# This job only checks out and runs tests. Nothing here writes to the repo.
+permissions:
+  contents: read
+
 jobs:
   collect:
     runs-on: ubuntu-latest

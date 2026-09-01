@@ -239,3 +239,15 @@ def test_the_injected_policy_is_this_repos_gate(tmp_path):
         'case no test verifies.')
     assert counts['unreviewed'] == 2
 
+
+def test_report_blocks_shim_is_the_package_module():
+    """The _support.reporting path resolves to the package's htmlblocks.
+
+    A broken alias here is quiet: the three suites that import
+    inline_block would keep passing against a stale copy while the shared
+    module evolves without them.
+    """
+    import tests.internal_api._support.reporting as shim
+    from soterix_qa_shared.reporting import htmlblocks
+    assert shim is htmlblocks
+    assert shim.inline_block is htmlblocks.inline_block

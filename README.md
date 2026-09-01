@@ -136,3 +136,20 @@ pytest --qatouch-upload --qatouch-run <RUN_KEY> tests\
 
 Case mappings live in `config/qatouch_case_mapping.json` (hand-edited),
 **never** in test files.
+
+## After a Run
+
+One question, one place. Statuses of record live in the QA Touch run when
+the run was armed. Failure detail lives in the per-suite HTML report
+(`reports/internal.html` / `reports/integration.html`) plus the HTTP
+exchange log each failed test prints. Long-term history lives in
+`history/*.jsonl`, committed. Defects live in Jira, filed by a person.
+
+A manual or debug run uploads nothing and ledgers nothing: run it, read
+the report, iterate, done. Arm a run only when it is an official check.
+
+The team-wide viewing plan (nginx on spartan1 serving run evidence, the
+self-hosted runner beside it, retention) is decided and documented once,
+in the WebApp repo: `Soterix-WebApp-QA/docs/RUN_WORKFLOWS.md`. This repo's
+runs are browser-free, so its evidence is smaller, but it follows the same
+model.

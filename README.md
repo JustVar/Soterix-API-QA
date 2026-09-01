@@ -113,7 +113,7 @@ exists on QA only: its base URL is the `integration_api_base_url` key, which
 is `None` on stage/prod so integration tests skip there. Do not invent new
 `ENV` values. Add config keys instead.
 
-## Contributing across the two remotes
+## Contributing Across the Two Remotes
 
 This repo lives in two GitHub orgs (JustVar + Soterix-Systems). All merges
 follow **`docs/MERGE_RUNBOOK.md`**. The two rules everyone must know:
@@ -126,7 +126,7 @@ follow **`docs/MERGE_RUNBOOK.md`**. The two rules everyone must know:
 
 Team changes go through a feature branch and a PR on Soterix-Systems.
 
-## QA Touch reporting (opt-in)
+## QA Touch Reporting (Opt-in)
 
 Results upload only when explicitly armed:
 

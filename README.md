@@ -30,25 +30,27 @@ run installs in seconds and launches no browser.
 ```powershell
 python -m venv venv
 venv\Scripts\pip install -r requirements.txt
-venv\Scripts\pip install -e ..\soterix-qa-shared   # the shared QA pipeline
 copy .env.template .env      # then fill in credentials
 ```
 
-The third line is not optional. `plugins/` and `tools/` here are thin shims
-over `soterix_qa_shared`, so without it every pytest run stops at
-`ImportError: ... soterix-qa-shared is not installed`. Measured on a clean
-venv following the two lines above: `pytest tests/plugins` would not even
-collect. It needs no credential, because it installs the sibling checkout
-from disk rather than the private repo. Clone it beside this one:
+That is the whole setup. `requirements.txt` pulls in the shared QA pipeline
+(`soterix-qa-shared`) for you, over HTTPS, using the same GitHub login your
+`git clone` used. You need read access to that repo, which is granted
+separately from this one: if pip reports a 404, ask for it rather than
+hunting for a token. `plugins/` and `tools/` here are thin shims over that
+package, so nothing collects without it.
+
+**Only if you need to change the shared package**, clone it beside this repo
+and install it editable. That overrides the pinned copy until you reinstall:
 
 ```powershell
 cd ..
 git clone https://github.com/Soterix-Systems/SOTERIX-QA-SHARED.git soterix-qa-shared
+cd Soterix-API-QA
+venv\Scripts\pip install -e ..\soterix-qa-shared
 ```
 
-`requirements-shared.txt` is the CI path and installs the same package from
-a pinned tag over SSH. Do not use it locally: it needs a deploy key, and an
-editable sibling lets you test a package change before tagging it.
+Most people never need this.
 
 Run the suite you are working on, not the whole tree. The two suites need
 different credentials, and a bare `pytest` errors on whichever one you lack:

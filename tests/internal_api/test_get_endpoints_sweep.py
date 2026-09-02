@@ -8,22 +8,10 @@ recordings, licenses...) on your staging server, so firing all of them
 blindly would be unsafe. Those belong in tests/functional/ instead, where
 you control exactly what test data gets created.
 
-How this file works:
-  1. GET_ENDPOINTS (data/endpoints.py) lists (name, path_template) tuples,
-     one per GET operation, grouped by controller/tag exactly as the Swagger
-     spec groups them.
-  2. `{placeholders}` in the path are filled in from `discovery_context`
-     (siteid, enterpriseid, channelid, userid, ...) at test time.
-  3. If a required placeholder can't be resolved (e.g. no channel exists on
-     the site), the test is skipped rather than failed - that's a data gap,
-     not an API bug.
-  4. Assertion is intentionally simple and "positive-path": HTTP 200 and a
-     parseable JSON body. Add stronger schema assertions per-endpoint as
-     you find validation the team cares about.
-
-To add more endpoints: copy a line from the Swagger doc, paste the path
-into data/endpoints.py, and it's automatically wired into the parametrized
-run - no new test function needed.
+An unresolved `{placeholder}` (no channel on the site, say) skips rather
+than fails - a data gap, not an API bug. The assertion is deliberately
+positive-path: HTTP 200 and a parseable JSON body. To add an endpoint,
+add a row to data/endpoints.py.
 """
 import time as time_module
 
@@ -36,9 +24,6 @@ from .data.endpoints import GET_ENDPOINTS, KNOWN_LIMITATIONS
 
 pytestmark = [pytest.mark.internal, pytest.mark.api, pytest.mark.env_qa]
 
-# All endpoints share one generous max timeout (config.DEFAULT_TIMEOUT,
-# 120s by default / overridable via API_TIMEOUT_SECONDS env var) instead of
-# needing per-endpoint overrides.
 
 # Server-side states that are transient, not real failures - e.g. the VMS
 # rebalancing camera load across media servers. Worth a short retry instead

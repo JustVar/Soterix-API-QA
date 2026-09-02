@@ -154,10 +154,7 @@ def format_exchanges(exchanges: list[dict]) -> str:
 
 class BaseAPIClient:
     def __init__(self, base_url: str, token: str | None = None, timeout: int = 15, max_seconds: float = 2.0):
-        # Normalize base_url and ensure API server prefix present.
-        # Many deployments mount the API under `/v-apiserver`; if the
-        # provided `base_url` does not already include that segment,
-        # append it so client code can use paths like `/REST/...`.
+        # Append /v-apiserver when absent so callers use bare /REST/... paths.
         b = (base_url or "").rstrip("/")
         if not b.endswith("/v-apiserver"):
             b = b + "/v-apiserver"
@@ -189,7 +186,6 @@ class BaseAPIClient:
             if re.fullmatch(r"[0-9a-fA-F]{16,128}", t) or "=" in t:
                 # If token includes '=', assume it's raw cookie string like 'JSESSIONID=...'
                 if "=" in t:
-                    # token may be e.g. 'JSESSIONID=abc; Path=/'
                     h["Cookie"] = t
                 else:
                     h["Cookie"] = f"JSESSIONID={t}"
@@ -248,8 +244,6 @@ class BaseAPIClient:
     def load_schema(self, schema_name: str) -> dict[str, Any] | None:
         if not schema_name:
             return None
-        # NOTE: in the old monorepo this path resolved to a directory that did
-        # not exist, so schema validation silently never ran. It is live now.
         path = os.path.join(ROOT, "schemas", "responses", f"{schema_name}.json")
         if not os.path.exists(path):
             return None

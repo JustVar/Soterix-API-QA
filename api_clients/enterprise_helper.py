@@ -13,19 +13,9 @@ class EnterpriseHelper:
         self._enterprise_id_cache: int | None = None
     
     def get_enterprise_id(self, site_id: int) -> int:
-        """
-        Get enterpriseId by calling Site Status API.
-        
-        Args:
-            site_id: The site ID to query
-            
-        Returns:
-            The enterpriseId for the site
-            
-        Raises:
-            ValueError: If enterpriseId not found in response
-        """
-        # Return cached value if available
+        """enterpriseId from the Site Status API, cached after the first
+        call. Raises ValueError when the response carries no
+        enterpriseid."""
         if self._enterprise_id_cache is not None:
             return self._enterprise_id_cache
         

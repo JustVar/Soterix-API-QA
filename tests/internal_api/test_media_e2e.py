@@ -278,8 +278,8 @@ def test_media_comment(authed_session, exported_job, extras):
     assert resp.status_code == 200, f"addMediaComment failed: {resp.status_code} {resp.text[:300]}"
     extras.append(inline_block("Add comment", "e2e test comment"))
 
-    # Verified effect is a new mediaActivities log entry (never confirmed the
-    # "comments" field itself stores the text separately - see module docstring).
+    # Verified effect is a new mediaActivities log entry; whether the
+    # "comments" field stores the text separately was never confirmed.
     body = _validate_media(authed_session, media_id, extras, label="Validate comment")
     assert len(body.get("mediaActivities", [])) > baseline_activity_count, (
         "Expected addMediaComment to add an activity log entry, count didn't increase"

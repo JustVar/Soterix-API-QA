@@ -37,14 +37,11 @@ class UserAPI(BaseAPIClient):
         """
         if not data or not isinstance(data, dict):
             return False
-        # Check for success code
         if data.get("code") != 200:
             return False
-        # Check for result list with at least one entry
         result = data.get("result", [])
         if not result or len(result) == 0:
             return False
-        # First result must contain userId
         first = result[0]
         if not isinstance(first, dict):
             return False

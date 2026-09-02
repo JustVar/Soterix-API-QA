@@ -2,16 +2,13 @@
 E2E test for the clip export lifecycle: start -> poll status until a
 terminal state -> download -> verify real binary content.
 
-This exercises the SAME endpoint the product UI actually calls -
-POST /REST/site/multi/export/clip/generation/start - not the single-clip
-legacy endpoint (/REST/site/export/clip/start). That legacy endpoint was
-tried first and reliably failed with "Connection Error with Edge Server"
-across 5 separate attempts on 2 environments/3 channels (see memory /
-git history for that investigation) - it turned out to simply be the
-wrong API surface, not a platform defect. Confirmed via a captured
-browser payload that the UI uses the multi-clip endpoint even for a
-single clip, which completes correctly in ~16s with a real downloadable
-file.
+Exercises the endpoint the product UI calls -
+POST /REST/site/multi/export/clip/generation/start. The legacy
+single-clip endpoint (/REST/site/export/clip/start) is the wrong
+surface: it answers "Connection Error with Edge Server" even for real
+footage (2 environments, 3 channels). A captured browser payload
+confirms the UI uses the multi-clip endpoint even for one clip; it
+completes in ~16s with a real downloadable file.
 
 Contract details confirmed via recon (not obvious from the OpenAPI spec
 alone - worth keeping here so nobody "fixes" this back to the wrong shape):

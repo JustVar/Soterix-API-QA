@@ -8,9 +8,9 @@ filter query (verified against the OpenAPI spec and live QA on 2026-08-08):
   2. POST /REST/site/search/event  pages that job's events with
                                    {jobId, offset, limit}
 
-An earlier version of this test posted siteId/startTime/ruleType filters
-directly to step 2 and always got 400 "verify request parameter data type" -
-none of those fields exist in its contract (VSearchEventRequest).
+Posting filter fields (siteId/startTime/ruleType) directly to step 2
+always answers 400 "verify request parameter data type": none of them
+exist in its contract (VSearchEventRequest).
 
 Catalog rows:
 - POST /REST/site/search (job submission, via SearchAPI)

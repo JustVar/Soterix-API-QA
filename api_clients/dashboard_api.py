@@ -12,7 +12,6 @@ class DashboardAPI(BaseAPIClient):
         r = self.get(path)
         r.raise_for_status()
         data = r.json()
-        # automatic schema validation could be done by name if available
         return data
 
     def get_shared_widgets(self, customer_id: int) -> dict[str, Any]:

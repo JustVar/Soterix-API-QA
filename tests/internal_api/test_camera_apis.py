@@ -14,9 +14,7 @@ def test_get_camera_tree(camera_api, test_site_id):
 @pytest.mark.api
 @pytest.mark.smoke
 def test_get_camera_snapshot(camera_api, test_site_id, test_channel_ids):
-    # QA environment: use channel list from API and call the snapshot endpoint
-    # Snapshot endpoint returns JSON: {"status":2000,"code":200,"result":{"content":[-1,-40,...]}}
-    # fetch channel list and pick first available channel id
+    # Snapshot answers JSON: {"status":2000,"code":200,"result":[{"content":[-1,-40,...]}]}
     ch_list_resp = camera_api.get(f"/REST/site/{test_site_id}/channel")
     ch_list_resp.raise_for_status()
     channels_json = ch_list_resp.json()
@@ -48,9 +46,7 @@ def test_get_camera_snapshot(camera_api, test_site_id, test_channel_ids):
     snap_resp.raise_for_status()
     j = snap_resp.json()
     assert isinstance(j, dict)
-    # assert standard response status
     assert j.get("status") in (2000, 200)
-    # drill into result.content
     result = j.get("result")
     # Handle actual response format: result may be a LIST containing a dict with "content"
     if isinstance(result, list) and len(result) > 0 and isinstance(result[0], dict):

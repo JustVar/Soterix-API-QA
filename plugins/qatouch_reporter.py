@@ -18,11 +18,8 @@ except ModuleNotFoundError as exc:
     ) from None
 
 # Which mapping rows may upload is THIS repo's decision, and it gates on
-# reviewed. Of its 31 rows, 18 were written deliberately and 13 were guessed
-# by word overlap - and every one of the 13 points at a UI behaviour case,
-# while all 7 of those cases appear in the live QA Touch runs and 0 of the 5
-# correct ones do. Ungated, the only results that would land are the wrong
-# ones. Injected BEFORE the alias swap.
+# `reviewed` - the measured why is tools/qatouch_mapping.py's docstring.
+# Injected BEFORE the alias swap.
 _mod.MAPPING_POLICY = _policy
 
 sys.modules[__name__] = _mod

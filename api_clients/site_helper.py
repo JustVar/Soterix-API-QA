@@ -5,15 +5,8 @@ from typing import Any
 
 
 def get_available_sites(user_api) -> list[dict[str, Any]]:
-    """Return a list of site objects available to the logged-in user.
-
-    Strategy:
-    - Call `/REST/central/user/session` via the provided `user_api` and
-      inspect the response for site/assignedSites information.
-    - If the session response does not include site info, attempt
-      `/REST/site/user/{userid}` as used by the UI client.
-    - If both fail, return an empty list.
-    """
+    """Sites for the logged-in user: the session's assignedSites when
+    present, else /REST/site/user/{userId}, else []."""
     try:
         sess = user_api.get_user_session()
     except Exception:  # noqa: BLE001 - session lookup is best effort; the site/user endpoint is next

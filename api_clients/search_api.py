@@ -50,7 +50,6 @@ class SearchAPI(BaseAPIClient):
                             query["enterpriseId"] = first.get("enterpriseId")
         except Exception:  # noqa: BLE001, S110 - enterpriseId is optional; a failed lookup leaves it out
             pass
-        # Try to include enterpriseId if the site metadata exposes it
         return {"queryList": [{"query": query}], "isAddedByRule": False}
 
     def search_person(self, site_id: int, channels: list[int], start_ts: int, end_ts: int, filters: dict[str, Any] | None = None) -> dict[str, Any]:

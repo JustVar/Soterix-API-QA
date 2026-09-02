@@ -15,15 +15,8 @@ class SiteDiscovery:
         self._sites_cache: list[dict[str, Any]] | None = None
     
     def get_user_sites(self, user_email: str) -> list[dict[str, Any]]:
-        """
-        Get all sites available to a user.
-        
-        Args:
-            user_email: The user's email address
-            
-        Returns:
-            List of site objects with siteId, enterpriseId, name, etc.
-        """
+        """All sites the user can see, from /REST/site/user/{email}.
+        Cached after the first call."""
         if self._sites_cache is not None:
             return self._sites_cache
         
@@ -39,7 +32,6 @@ class SiteDiscovery:
         data = response.json()
         sites = data.get("result", [])
         
-        # Cache for future calls
         self._sites_cache = sites
         
         print(f"[SITE DISCOVERY] Found {len(sites)} site(s) for user {user_email}")

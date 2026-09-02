@@ -16,7 +16,8 @@ QA_URL = "https://qa.example.invalid/v-apiserver/v3/api-docs"
 PROD_URL = "https://app.example.invalid/v-apiserver/v3/api-docs"
 
 ROOT = Path(__file__).resolve().parents[1]
-OUT_DIR = ROOT / "tests" / "shared" / "schemas"
+# schemas/ at the repo root is where the committed specs live
+OUT_DIR = ROOT / "schemas"
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 
 

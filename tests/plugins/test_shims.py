@@ -1,7 +1,6 @@
 """Guards for the soterix-qa-shared compatibility shims.
 
-Copy this to each consuming repo as `tests/plugins/test_shims.py`, then edit
-the two places marked THIS REPO.
+Adapted from the soterix-qa-shared shim-guard template.
 
 A broken shim is silent. Replacing the module alias with a star-import
 leaves the repo's own reporter suite fully green while every monkeypatch
@@ -19,7 +18,7 @@ The template's fourth section, a CLI running through its shim, is dropped:
 this repo has no retry_uploads.
 
 Plus one each repo owns: the mapping policy its shim injects is the right
-one (the UI repo gates on `reviewed`; the API repo does not).
+one (both repos gate on `reviewed`).
 """
 from __future__ import annotations
 
@@ -97,10 +96,9 @@ def test_shim_is_registered_under_one_name_only(pytestconfig):
 def test_patching_the_old_path_moves_the_run_record(monkeypatch, tmp_path):
     """The PLUGIN, not the test, must read the patched path.
 
-    An earlier version of this test patched the module global and then read
-    it back itself to build the sink - a setattr/getattr round-trip that
-    proves nothing about the code that runs. It now drives the plugin's own
-    entry points, so the path under test is the one a real session uses.
+    Drives the plugin's own entry points: patching the global and reading
+    it back yourself is a setattr/getattr round-trip that proves nothing
+    about the code a real session runs.
     """
     target = tmp_path / 'last_run_results.json'
     monkeypatch.setattr(shim_reporter, 'RUN_RESULTS_PATH', target)
@@ -208,11 +206,8 @@ def test_the_module_globals_are_read_at_call_time(monkeypatch, tmp_path):
 
 # --- 5. THIS REPO: the injected mapping policy ------------------------------
 #
-# This repo gates on `reviewed`. Of its 31 mapping rows, 18 were written
-# deliberately and 13 were guessed by word overlap - and all 13 point at UI
-# behaviour cases. All 7 of those cases appear in the live QA Touch runs
-# while 0 of the 5 correct ones do, so ungated the only results that would
-# land are the wrong ones.
+# This repo gates on `reviewed`; the measured why lives in
+# tools/qatouch_mapping.py.
 
 def test_the_injected_policy_is_this_repos_gate(tmp_path):
     """The shim injected THIS repo's mapping policy, not a permissive default."""

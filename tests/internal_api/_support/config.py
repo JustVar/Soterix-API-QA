@@ -1,14 +1,13 @@
 """Support config for the ported flow tests (endpoint sweep, e2e).
 
-Ported from PR #1 (new_API_flow/config.py) and rewired to this repo:
-
-- The host comes from the active ENV (config/env/), not a hardcoded URL, so
-  these tests follow ENV=qa|stage|prod like the rest of the suite.
-- There are NO credentials here. Auth is the shared api_auth_token fixture
-  (session login via AuthHelper). The old config's hardcoded account and
-  password are gone on purpose.
-- The tuning knobs (timeouts, export duration, the media-share recipient)
-  stay, read from the environment with safe defaults.
+- The host comes from the active ENV (config/env/), so these tests follow
+  ENV=qa|stage|prod like the rest of the suite.
+- NO credentials here, on purpose: auth is the shared api_auth_token
+  fixture (session login via AuthHelper).
+- Tuning knobs (timeouts, export duration, the media-share recipient) read
+  from the environment with safe defaults.
+- Lives under tests/internal_api/_support so it cannot shadow the
+  repo-root config/ package.
 
 This module lives under tests/internal_api/_support so it never shadows the
 repo-root config/ package the way the original top-level config.py did.

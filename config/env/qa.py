@@ -20,7 +20,6 @@ config = {
     "test_site_name": "Newtown Action Area",
     "test_camera_name": "main gate",
 
-    # Box configurations
     # Box configurations. Each box names the environment variables that hold
     # the account to use, so every tester signs in as themselves.
     "boxes": {

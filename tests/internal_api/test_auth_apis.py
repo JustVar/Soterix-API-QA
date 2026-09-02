@@ -86,8 +86,8 @@ def test_login_contract_returns_a_session(api_base_url, login_data):
 def test_central_login_rejects_invalid_credentials(api_base_url):
     """POST /REST/central/user/auth/login with bogus creds returns non-2xx.
 
-    Calls the endpoint directly so we never trigger the UI fallback that
-    AuthHelper.login() would attempt for unknown users.
+    Calls the endpoint directly with requests, so the test pins the
+    endpoint's own rejection rather than AuthHelper's error handling.
     """
     base = api_base_url.rstrip("/")
     if not base.endswith("/v-apiserver"):

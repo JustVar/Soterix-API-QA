@@ -13,8 +13,11 @@ import pytest
 
 # QA Touch result reporting. Dormant unless armed with
 # --qatouch-upload --qatouch-run <RUN_KEY> (or QATOUCH_UPLOAD/QATOUCH_RUN_KEY).
-# pytest requires pytest_plugins to be declared in the rootdir conftest.
-pytest_plugins = ['plugins.qatouch_reporter']
+# The run archive keeps every run under reports/runs/ (run.html, summary.json
+# with per-test durations, the index) and carries the live in-progress record;
+# RUN_ARCHIVE=off is its kill switch. pytest requires pytest_plugins to be
+# declared in the rootdir conftest.
+pytest_plugins = ['plugins.qatouch_reporter', 'plugins.run_archive']
 
 
 @pytest.fixture(scope="session")

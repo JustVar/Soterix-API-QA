@@ -46,8 +46,10 @@ from soterix_qa_shared.qatouch.results import (
     RunResult,
 )
 from soterix_qa_shared.qatouch.upload import QATouchUploadSink
+from soterix_qa_shared.reporting import run_archive as pkg_run_archive
 
 from plugins import qatouch_reporter as shim_reporter
+from plugins import run_archive as shim_run_archive
 from tools import qatouch_client as shim_client
 
 
@@ -75,6 +77,15 @@ def test_client_shim_is_the_package_module():
     """The client's old import path IS the package module, not a copy."""
     assert shim_client is pkg_client, (
         'tools.qatouch_client is not the package module.')
+
+
+def test_run_archive_shim_is_the_package_module(pytestconfig):
+    """The archive shim IS the package module, and the session registered it."""
+    assert shim_run_archive is pkg_run_archive, (
+        'plugins.run_archive is not the package module.')
+    names = {name for name, plugin in pytestconfig.pluginmanager.list_name_plugin()
+             if plugin is pkg_run_archive}
+    assert len(names) == 1, f'run archive registered under {names or "no name"}; conftest lists plugins.run_archive'
 
 
 def test_shim_is_registered_under_one_name_only(pytestconfig):

@@ -1,7 +1,26 @@
 # Soterix API - QA
 
-API test automation for the Soterix VSaaS platform. This repo carries **two
-isolated suites**, one per API surface:
+## What this repo does
+
+This repo tests the APIs of the Soterix VSaaS platform with HTTP requests.
+It uses no browser. A test sends a request, then checks the status, the
+shape and the content of the answer.
+
+## How it works
+
+1. The tests are Python. pytest runs them, and the `requests` library sends
+   the calls. A full run installs in seconds.
+2. The platform has 2 API surfaces, and each one has its own suite, its own
+   login and its own credentials in `.env`. One suite can break and the
+   other still runs.
+3. The internal suite signs in one time for each run and keeps the session
+   cookie. The clients in `api_clients/` hold the endpoints, so a change in
+   the API is corrected in 1 place.
+4. Each run keeps its evidence and its report page the same way as the
+   WebApp repo. The shared package `soterix-qa-shared` supplies that code.
+5. The upload of results to QA Touch is optional and off by default.
+
+## The 2 suites
 
 | Suite | Surface | Auth | Credentials |
 |---|---|---|---|

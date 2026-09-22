@@ -172,3 +172,23 @@ self-hosted runner beside it, retention) is decided and documented once,
 in the WebApp repo: `Soterix-WebApp-QA/docs/RUN_WORKFLOWS.md`. This repo's
 runs are browser-free, so its evidence is smaller, but it follows the same
 model.
+
+### If spartan1 is down
+
+The merge gate runs on spartan1, which costs no Actions minutes. If the box
+is off, a push has no runner, so the gate waits instead of failing. That
+looks like a hang and is not one.
+
+Send it back to GitHub's machines either way:
+
+- Set the repository variable `CI_RUNNER` to `hosted`. It applies to every
+  event, a push included, and it stays set until somebody removes it.
+- Or start the workflow by hand from the Actions tab with `hosted` ticked. A
+  dispatch input is null on an automatic event, so this one covers a single
+  run.
+
+Remove the variable when the box is back, or every run bills minutes again:
+
+```bash
+gh variable delete CI_RUNNER -R Soterix-Systems/Soterix-API-QA
+```

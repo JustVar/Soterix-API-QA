@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """List the internal API paths the code calls, and check them against the inventory.
 
     python tools/api_usage.py                 # endpoint -> files that call it

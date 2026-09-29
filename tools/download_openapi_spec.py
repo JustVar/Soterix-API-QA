@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Download the internal API's OpenAPI spec from the configured server.
 
 The host comes from config/env/<ENV>.py (api_base_url), so a server change

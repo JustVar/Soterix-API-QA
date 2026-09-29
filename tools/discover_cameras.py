@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """Print the cameras of a site on the QA server.
 
 Use it to fill test_site_name and test_camera_name in config/env/qa.py on

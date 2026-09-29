@@ -76,16 +76,17 @@ def validate_spec_file(path: Path) -> bool | None:
 
 
 def main():
+    from api_clients.tls import ssl_verify
     from config.base_config import config
 
     env = (os.environ.get("ENV") or "qa").strip().lower()
     api_base_url = config.get("api_base_url", config["base_url"]).rstrip("/")
     url = f"{api_base_url}/v3/api-docs"
     out_path = OUT_DIR / f"openapi_spec_{env}.json"
-    # Same TLS rule as the clients: verify only when SSL_VERIFY=true.
-    verify = os.getenv("SSL_VERIFY", "").lower() in ("true", "1", "yes")
 
-    if not download(url, out_path, verify):
+    # The TLS rule of the clients (api_clients/tls.py): verify only when
+    # SSL_VERIFY is true.
+    if not download(url, out_path, ssl_verify()):
         sys.exit(1)
 
     spec = json.loads(out_path.read_text(encoding="utf-8"))

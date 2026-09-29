@@ -54,24 +54,3 @@ class LocationAPI(BaseAPIClient):
         if not matches:
             return None
         return max(matches, key=lambda n: n["location"]["id"])
-
-    @staticmethod
-    def channel_id_by_name(tree: list[dict[str, Any]], camera_name: str) -> int:
-        """Channel id of the camera called `camera_name` (case-insensitive).
-
-        Raises LookupError with the names seen when the camera is absent.
-        The shared tenant renames cameras. The fix is test_camera_name in
-        config/env/.
-        """
-        wanted = camera_name.strip().lower()
-        seen: list[str] = []
-        for node in tree:
-            for channel in node.get("channel") or []:
-                name = str(channel.get("name", ""))
-                if name.strip().lower() == wanted:
-                    return int(channel["id"])
-                if name not in seen:
-                    seen.append(name)
-        raise LookupError(
-            f"No camera named '{camera_name}' on this site. Cameras: {seen}. "
-            f"Update test_camera_name in config/env/ if the tenant renamed it.")

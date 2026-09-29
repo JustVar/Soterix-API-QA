@@ -8,6 +8,7 @@ import logging
 import os
 
 import pytest
+import requests
 
 import api_clients.auth_helper as auth_helper_mod
 import api_clients.base_api_client as base_client_mod
@@ -18,7 +19,8 @@ import api_clients.discovery_helper as discovery_mod
 import api_clients.location_api as location_mod
 import api_clients.search_api as search_mod
 import api_clients.user_api as user_mod
-from api_clients import site_helper
+from api_clients import data_choice, site_helper
+from api_clients.tls import ssl_verify
 from config.base_config import (
     config as _config,  # noqa: F401 (resolves ENV early, with a clear error)
 )
@@ -183,7 +185,10 @@ def test_channel_ids(discovery_helper, test_site_id):
 # Test data fixtures. Tests that write data (locations, bookmarks) resolve
 # their site by NAME (test_site_name in config/env/), never by TEST_SITE_ID.
 # A number is easy to get wrong: two sites with similar names once carried
-# the wrong id in both repos. See docs/API_SURFACES.md, "Test data".
+# the wrong id in both repos. A blank name means the first site by name
+# with a camera, and the first camera by name on it, sorted by name and
+# never by the server's order (api_clients/data_choice.py). See
+# docs/API_SURFACES.md, "Test data".
 # --------------------------------------------------------------------------
 
 @pytest.fixture(scope="session")
@@ -197,23 +202,35 @@ def bookmark_api(api_base_url, api_auth_token):
 
 
 @pytest.fixture(scope="session")
-def data_site(site_discovery, login_data, env_config):
-    """The site that test_site_name in config/env/ names, resolved by name.
+def data_site(site_discovery, location_api, login_data, env_config):
+    """The site the writing tests use, as /REST/site/user/{email} lists it.
 
-    Skips when the config has no name or the account has no site by that
-    name. The skip message lists the sites the account can see.
+    test_site_name in config/env/ names it. Blank: the first site by name
+    whose status is REGISTERED and whose location tree has a camera. A
+    configured name is checked, never replaced. The skip lists the sites
+    the account sees, so the fix is one edit. The print line says which
+    site the run used.
     """
-    name = env_config.get("test_site_name")
-    if not name:
-        pytest.skip(
-            f"test_site_name is not set in config/env/ for ENV={os.environ.get('ENV', 'qa')}")
     email = login_data["username"]
-    site = site_discovery.get_site_by_name(email, name)
-    if not site:
-        names = [s.get("name") for s in site_discovery.get_user_sites(email)]
-        pytest.skip(
-            f"No site named '{name}' for {email}. Sites: {names}. "
-            f"Fix test_site_name in config/env/.")
+    configured = (env_config.get("test_site_name") or "").strip()
+
+    def cameras_of(site_id):
+        # A site whose backend is down answers 4xx or 5xx on location/tree.
+        # It is not a candidate, and the print line says so.
+        try:
+            return data_choice.cameras_by_name(location_api.get_location_tree(site_id))
+        except requests.HTTPError as exc:
+            status = getattr(exc.response, "status_code", "?")
+            print(f"[DATA SITE] site {site_id} is not a candidate: location/tree answered {status}")
+            return []
+
+    try:
+        site = data_choice.choose_site(site_discovery.get_user_sites(email), cameras_of, configured)
+    except LookupError as exc:
+        pytest.skip(f"{exc} (account {email}, ENV={os.environ.get('ENV', 'qa')})")
+    how = ("test_site_name in config/env/" if configured
+           else "the first site by name with a camera, test_site_name is blank in config/env/")
+    print(f"[DATA SITE] '{site['name']}' (siteId {site['siteId']}): {how}")
     return site
 
 
@@ -223,17 +240,24 @@ def data_site_id(data_site):
 
 
 @pytest.fixture(scope="session")
-def data_channel_id(location_api, data_site_id, env_config):
-    """Channel id of test_camera_name on the data site, read from location/tree.
+def data_channel_id(location_api, data_site, env_config):
+    """Channel id of the camera the writing tests use, read from location/tree.
 
-    Raises LookupError with the camera names seen when the tenant renamed
-    the camera. The fix is test_camera_name in config/env/.
+    test_camera_name in config/env/ names it. Blank: the first camera by
+    name on the data site. A configured name is checked, never replaced.
+    The skip lists the cameras the site has, so a rename by the shared
+    tenant is one edit. The print line says which camera the run used.
     """
-    camera = env_config.get("test_camera_name")
-    if not camera:
-        pytest.skip(
-            f"test_camera_name is not set in config/env/ for ENV={os.environ.get('ENV', 'qa')}")
-    return location_api.channel_id_by_name(location_api.get_location_tree(data_site_id), camera)
+    configured = (env_config.get("test_camera_name") or "").strip()
+    cameras = data_choice.cameras_by_name(location_api.get_location_tree(int(data_site["siteId"])))
+    try:
+        camera = data_choice.choose_camera(cameras, data_site["name"], configured)
+    except LookupError as exc:
+        pytest.skip(str(exc))
+    how = ("test_camera_name in config/env/" if configured
+           else "the first camera by name, test_camera_name is blank in config/env/")
+    print(f"[DATA CAMERA] '{camera['name']}' (channel {camera['id']}) on '{data_site['name']}': {how}")
+    return camera["id"]
 
 
 @pytest.fixture(scope="session")
@@ -304,10 +328,9 @@ def authed_session(api_auth_token):
     calls are the ones auto-captured into the failure report; direct calls
     here are surfaced through the tests' own extras blocks instead.
     """
-    import requests
     s = requests.Session()
     s.headers["Cookie"] = f"JSESSIONID={api_auth_token}"
-    s.verify = False
+    s.verify = ssl_verify()
     return s
 
 
@@ -323,16 +346,20 @@ def discovery_context(authed_session, api_base_url, test_site_id,
     and 2 more asked one site about a channel that lives on another. One
     site id source means the ids can never disagree.
 
+    channelid is TEST_CHANNEL_ID from .env when set, the way TEST_SITE_ID
+    pins the site, else the first of test_channel_ids.
+
     userid/profileid are read from the session and roles. A placeholder that
     cannot be resolved leaves its key None, and the sweep skips endpoints
     that need it.
     """
     import time
 
+    explicit = os.environ.get("TEST_CHANNEL_ID")
     ctx = {
         "siteid": test_site_id,
         "enterpriseid": test_enterprise_id,
-        "channelid": test_channel_ids[0] if test_channel_ids else None,
+        "channelid": int(explicit) if explicit else (test_channel_ids[0] if test_channel_ids else None),
         "userid": None,
         "profileid": None,
         "endtimestamp": int(time.time() * 1000),
@@ -341,22 +368,31 @@ def discovery_context(authed_session, api_base_url, test_site_id,
     ctx["endts"] = ctx["endtimestamp"]
     ctx["startts"] = ctx["starttimestamp"]
 
+    # No row of data/endpoints.py uses {userid} or {profileid} today. The
+    # lookups stay so a new row can, without a fixture change. A refused
+    # answer, a transport error or an unreadable body leaves the key None
+    # and the sweep skips the rows that need it. Any other error raises:
+    # the except is narrow on purpose, so a mistake in this block cannot
+    # hide for every session the way a bare except once hid one.
     try:
         r = authed_session.get(f"{api_base_url}/REST/central/user/session", timeout=30)
         if r.status_code == 200:
-            res = r.json().get("result") or [{}]
-            ctx["userid"] = res[0].get("userId")
-    except Exception:  # noqa: BLE001, S110 - best-effort; sweep skips endpoints that need userid
+            body = r.json()
+            res = body.get("result") if isinstance(body, dict) else None
+            if res and isinstance(res[0], dict):
+                ctx["userid"] = res[0].get("userId")
+    except (requests.RequestException, ValueError, KeyError):
         pass
-    if discovered_enterprise_id is not None:
+    if test_enterprise_id is not None:
         try:
             r = authed_session.get(
-                f"{api_base_url}/REST/central/role/{discovered_enterprise_id}", timeout=30)
+                f"{api_base_url}/REST/central/role/{test_enterprise_id}", timeout=30)
             if r.status_code == 200:
-                roles = r.json().get("result") or []
+                body = r.json()
+                roles = body.get("result") if isinstance(body, dict) else None
                 if roles and isinstance(roles[0], dict):
                     ctx["profileid"] = roles[0].get("profileId")
-        except Exception:  # noqa: BLE001, S110 - best-effort; sweep skips endpoints that need profileid
+        except (requests.RequestException, ValueError, KeyError):
             pass
     return ctx
 
@@ -367,20 +403,24 @@ def recorded_clip_window(authed_session, api_base_url, discovery_context):
 
     Clip-export/media e2e tests need actual footage to export. Skips (not
     fails) when no channel or no recorded clip is available: that is a
-    data/environment gap, not a bug these tests are meant to catch.
+    data/environment gap, not a bug these tests are meant to catch. A
+    non-200 FAILS, the integration suite's rule: a dead site or a refused
+    session must not look like a data gap.
     """
     site_id = discovery_context["siteid"]
     channel_id = discovery_context["channelid"]
     if channel_id is None:
-        pytest.skip("No channel discovered on this site; cannot resolve a recorded clip window")
+        pytest.skip("No channel discovered on this site. Cannot resolve a recorded clip window")
 
     url = f"{api_base_url}/REST/site/{site_id}/getcurrentrecordbychannelid"
     r = authed_session.post(url, json=channel_id, timeout=60)
     if r.status_code != 200:
-        pytest.skip(f"getCurrentRecordByChannelId failed ({r.status_code}); no recorded clip to use")
+        pytest.fail(
+            f"getCurrentRecordByChannelId answered {r.status_code} for channel {channel_id} "
+            f"on site {site_id}: {r.text[:300]}")
     result = r.json().get("result") or []
     if not result:
-        pytest.skip("No recorded clip found for the discovered channel")
+        pytest.skip(f"No recorded clip for channel {channel_id} on site {site_id} (empty 200)")
     record = result[0]
     return {"channel_id": channel_id,
             "start_ts": record["startTimestamp"],

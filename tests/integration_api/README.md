@@ -3,7 +3,8 @@
 Target: the third-party surface at `/v-integration-api`, with GET endpoints
 authenticated by a static `x-vsaas-key` header. The Swagger UI is the source
 of truth for the endpoint list (it grows over time):
-<https://qa.example.invalid/v-integration-api/swagger-ui/index.html>
+`<integration_api_base_url>/swagger-ui/index.html`, with
+`integration_api_base_url` from `config/env/qa.py`.
 
 Status: **built** (17 tests). The suite skips all 17 while
 `VSAAS_INTEGRATION_KEY` is empty, so 17 skips mean the key is missing, not

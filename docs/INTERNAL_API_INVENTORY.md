@@ -18,7 +18,9 @@ Last verified: **2026-08-27** (QA; key-management rows verified live by
   The status numbers are the envelope `status` seen on QA. `code` is 200
   on success and the API error code on failure.
 - "Verified on QA" is the date the request and answer in that row were
-  last confirmed against `qa.example.invalid`. "staging capture
+  last confirmed against the QA server in `config/env/qa.py`. On
+  2026-09-29 that file names the same server as on every date in this
+  file. "staging capture
   2026-05-15" means the row comes from the Chrome network capture behind
   `API_ENDPOINTS.md` and nothing here has called it since. "spec only,
   untested" means the path is in `schemas/openapi_spec_qa.json` (893

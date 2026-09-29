@@ -37,12 +37,6 @@ CLIP_EXPORT_TIMEOUT_SECONDS = int(os.getenv("CLIP_EXPORT_TIMEOUT_SECONDS", "120"
 # to whatever footage is actually available, so a short real clip still works.
 CLIP_EXPORT_DURATION_SECONDS = int(os.getenv("CLIP_EXPORT_DURATION_SECONDS", "60"))
 
-# Optional site/channel pin. Unset by default: discovery uses the first
-# site/channel the account can see. The e2e tests resolve these through the
-# shared fixtures, so setting these is only for targeting a specific camera.
-TEST_SITE_ID = os.getenv("TEST_SITE_ID")
-TEST_CHANNEL_ID = os.getenv("TEST_CHANNEL_ID")
-
 # Recipient for the media-share step. Empty by default so the share test
 # SKIPS instead of sending a real email. Set MEDIA_SHARE_TEST_EMAIL in .env
 # to a recipient who agreed to receive it before running that test.

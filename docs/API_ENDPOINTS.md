@@ -174,9 +174,8 @@ Endpoint pattern: `firestore.googleapis.com/.../Listen/channel?...`
 ## How to update this doc
 
 1. Drive the SPA through a feature you suspect has uncovered endpoints.
-2. Capture network traffic. Three ways:
+2. Capture network traffic. Two ways:
    - **Quick & local:** open Chrome DevTools -> Network -> filter `v-apiserver` -> click through the feature -> Save as HAR.
-   - **Interactive exploration:** use Bruno to poke an endpoint and refine the request shape before promoting it to a smoke test. See [BRUNO_GUIDE.md](./BRUNO_GUIDE.md).
    - **Programmatic:** in the DevTools console, patch `window.fetch` to log every REST call, then click through the feature and read the log.
 3. Diff against this catalog. Add new rows under the right section with status `uncovered` and a one-line "Where surfaced" note.
 4. When a smoke test lands, flip status to covered and link the test file/function.
@@ -187,10 +186,9 @@ Endpoint pattern: `firestore.googleapis.com/.../Listen/channel?...`
 | Tool | What it does | When to use |
 |---|---|---|
 | **pytest internal-API suite** (`tests/internal_api/`) | The authoritative automated API tests (smoke depth, `@pytest.mark.smoke`) | Always - this is the source of truth for coverage |
-| **Bruno** (`tests/bruno/`, not yet in this repo) | Human-friendly request collection, plain-file checked into git | Exploring a new endpoint, debugging a failing smoke test, sharing a repro with the platform team - see [BRUNO_GUIDE.md](./BRUNO_GUIDE.md) |
 | **Chrome DevTools network capture** | Capturing what the SPA actually calls | First step in discovering an undocumented endpoint |
 
-pytest is the test runtime. This repo is browser-free. Bruno is for exploration. It is not a CI dependency.
+pytest is the test runtime. This repo is browser-free.
 
 ## Why no swagger?
 

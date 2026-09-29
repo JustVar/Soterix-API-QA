@@ -8,12 +8,9 @@ import time
 import requests
 import urllib3
 
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+from .tls import ssl_verify
 
-# TLS verification is off unless SSL_VERIFY=true in .env. The QA server's
-# certificate has not been proven from here, and a failed handshake would
-# read as "could not reach the API". BaseAPIClient reads the same key.
-_VERIFY = os.getenv("SSL_VERIFY", "").lower() in ("true", "1", "yes")
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 # The web app authenticates against this endpoint. It is NOT the same one as
 # /REST/central/user/auth/login, which requires a `captcha` parameter that only
@@ -120,7 +117,7 @@ class AuthHelper:
         try:
             headers = {"Cookie": f"JSESSIONID={token}"}
             url = f"{self.base_url}/REST/central/user/session"
-            r = requests.get(url, headers=headers, verify=_VERIFY, timeout=10)
+            r = requests.get(url, headers=headers, verify=ssl_verify(), timeout=10)
             return r.status_code == 200
         except requests.RequestException:
             return False
@@ -144,7 +141,7 @@ class AuthHelper:
         }
 
         try:
-            r = requests.post(url, json=payload, timeout=20, verify=_VERIFY)
+            r = requests.post(url, json=payload, timeout=20, verify=ssl_verify())
         except requests.RequestException as e:
             raise RuntimeError(
                 f"Could not reach the API at {url}. Check base_url in config/env/, "
@@ -217,7 +214,3 @@ class AuthHelper:
             pass
         print("[AUTH] API login succeeded")
         return token
-
-    def get_authenticated_client(self, credentials: dict, client_class):
-        token = self.login(credentials["username"], credentials["password"])
-        return client_class(self.base_url, token)

@@ -41,21 +41,18 @@ def base_url(env_config):
 # ---------------------------------------------------------------------------
 # Report title: name the product under test, not just the repo.
 # The QA Touch project key selects the product (QATOUCH_PROJECT_ID in .env;
-# NexaiQ-Core when unset). The keys are the QA Touch project keys.
+# NexaiQ-Core when unset). The key-to-product table is the shared package's:
+# every Soterix QA repo reports into the same QA Touch projects.
 # ---------------------------------------------------------------------------
-PRODUCTS = {
-    "JlW1": "NexaiQ-Core",
-    "P0BK": "NexaiQ-Neurosen",
-    "60w8": "NexaiQ-Technician App",
-    "70l1": "NexaiQ-Partner Admin Tool",
-    "K5kB": "NexiaQ-Mobile",
-    "60W5": "NexaiQ-Camera 2 Cloud",
-}
-
 
 def pytest_html_report_title(report):
     import os
-    key = os.environ.get("QATOUCH_PROJECT_ID") or "JlW1"
+
+    # Imported here, not at the top: a missing package then fails with the
+    # shim's message (plugins/qatouch_reporter.py, "Run: python -m pip
+    # install -r requirements.txt") instead of a bare ModuleNotFoundError.
+    from soterix_qa_shared.reporting.products import DEFAULT_KEY, PRODUCTS
+    key = os.environ.get("QATOUCH_PROJECT_ID") or DEFAULT_KEY
     product = PRODUCTS.get(key, f"project {key}")
     env = os.environ.get("ENV", "qa")
     report.title = f"{product} - API tests ({env})"

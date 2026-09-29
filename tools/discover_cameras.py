@@ -1,8 +1,8 @@
 """Print the cameras of a site on the QA server.
 
 Use it to fill test_site_name and test_camera_name in config/env/qa.py on
-a new server: the first call lists the sites the account sees, the second
-lists the cameras of one site.
+a new server, or to see what a blank name will pick: the first call lists
+the sites the account sees, the second lists the cameras of one site.
 
 Usage:
     python tools/discover_cameras.py                # first site the account sees
@@ -15,6 +15,8 @@ import argparse
 import os
 import sys
 
+from dotenv import load_dotenv
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from api_clients.auth_helper import AuthHelper
@@ -24,6 +26,8 @@ from api_clients.site_discovery import SiteDiscovery
 
 
 def main():
+    # .env first: the --env default below reads ENV, which .env may set.
+    load_dotenv()
     parser = argparse.ArgumentParser(description="List the sites and cameras the account sees")
     parser.add_argument("--env", default=os.getenv("ENV", "qa"), help="config/env/<ENV>.py (default qa)")
     parser.add_argument("--site", type=int, help="Site id. Default: the first site the account sees")
@@ -31,8 +35,6 @@ def main():
 
     os.environ["ENV"] = args.env
 
-    from dotenv import load_dotenv
-    load_dotenv()
     from config.base_config import get_credentials, load_config
     config = load_config()
 

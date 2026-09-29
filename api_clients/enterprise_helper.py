@@ -3,44 +3,46 @@ from __future__ import annotations
 
 import requests
 
+from .tls import ssl_verify
+
 
 class EnterpriseHelper:
     """Fetches enterpriseId dynamically from Site Status API."""
-    
+
     def __init__(self, base_url: str, auth_token: str):
         self.base_url = base_url.rstrip("/")
         self.auth_token = auth_token
         self._enterprise_id_cache: int | None = None
-    
+
     def get_enterprise_id(self, site_id: int) -> int:
         """enterpriseId from the Site Status API, cached after the first
         call. Raises ValueError when the response carries no
         enterpriseid."""
         if self._enterprise_id_cache is not None:
             return self._enterprise_id_cache
-        
+
         url = f"{self.base_url}/REST/dashboard/site/{site_id}/status"
         headers = {
             "Cookie": f"JSESSIONID={self.auth_token}",
             "Content-Type": "application/json",
         }
-        
-        response = requests.get(url, headers=headers, verify=False)
+
+        response = requests.get(url, headers=headers, verify=ssl_verify(), timeout=30)
         response.raise_for_status()
-        
+
         data = response.json()
         result = data.get("result", {})
-        
+
         enterprise_id = result.get("enterpriseid")
         if enterprise_id is None:
             raise ValueError(f"enterpriseid not found in Site Status response for site {site_id}")
-        
+
         # Cache for future calls
         self._enterprise_id_cache = enterprise_id
         print(f"[ENTERPRISE] Discovered enterpriseId: {enterprise_id} for site: {site_id}")
-        
+
         return enterprise_id
-    
+
     def clear_cache(self):
         """Clear the cached enterpriseId."""
         self._enterprise_id_cache = None

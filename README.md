@@ -42,7 +42,7 @@ captcha, no UI login.
 
 ## Setup
 
-Python 3.14. Four commands:
+Python 3.14. 5 commands:
 
 ```powershell
 git clone https://github.com/Soterix-Systems/Soterix-API-QA.git C:\qa\api-qa
@@ -67,8 +67,12 @@ Leave every other line as it is.
 The server and the test data live in one file, `config/env/qa.py`:
 `base_url`, `api_base_url`, `integration_api_base_url`, `test_site_name`
 and `test_camera_name`. If the server is not the one in that file, edit
-those keys. The file's header lists them. To find a site and a camera the
-account can see, run `venv\Scripts\python.exe tools\discover_cameras.py`.
+those keys. The file's header lists them. `test_site_name` and
+`test_camera_name` may stay blank: the run then uses the first site by
+name that has a camera, and the first camera by name on it, and prints
+the choice. A name that is set is checked, never replaced. To see the
+sites and the cameras the account can see, run
+`venv\Scripts\python.exe tools\discover_cameras.py`.
 
 ## The first run
 
@@ -112,9 +116,11 @@ the key is missing, not that the surface passed.
 
 The endpoint sweep in `tests/internal_api/test_get_endpoints_sweep.py` skips
 the endpoints listed in `tests/internal_api/data/endpoints.py`
-(`KNOWN_LIMITATIONS`). Every reason there was measured on the previous QA
-server. On a new server, delete a row, run the sweep, and keep the row only
-if the endpoint still fails for the stated reason.
+(`KNOWN_LIMITATIONS`). Every reason there names the server and the month
+it was measured on (`_MEASURED` in that file). That is the server in
+`config/env/qa.py` today, so the rows apply. On a new server, delete a
+row, run the sweep, and keep the row only if the endpoint still fails for
+the stated reason.
 
 ## TLS
 
@@ -125,9 +131,9 @@ signed, and a failed handshake then reads as "Could not reach the API".
 
 ## Before you push: the collect gate
 
-CI runs `.github/workflows/collect-gate.yml` on every push and pull
-request, on GitHub's machines, with no secret. It proves the wiring, not
-the surface:
+CI runs `.github/workflows/collect-gate.yml` on a push to `main` and on
+every pull request, on GitHub's machines, with no secret. It proves the
+wiring, not the surface:
 
 1. `pytest --collect-only` and `pytest --setup-plan`: every import and
    fixture resolves. No test runs.
@@ -146,7 +152,7 @@ Work on a branch and open a pull request. Never force-push `main`.
 
 ```
 .github/workflows/  collect-gate CI (imports, fixture wiring, floor, lint)
-api_clients/        internal-suite HTTP clients (auth, cameras, locations, bookmarks, dashboard, search, users)
+api_clients/        internal-suite HTTP clients (auth, cameras, locations, bookmarks, dashboard, search, users), the TLS rule (tls.py), the site and camera choice (data_choice.py)
 config/             config/env/qa.py (the server), the collect floor, the QA Touch case mapping
 docs/               API_SURFACES.md (start here), INTERNAL_API_INVENTORY.md, endpoint catalog, ARCHIVE.md
 plugins/            shims over the shared package: run archive, QA Touch reporter

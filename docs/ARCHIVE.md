@@ -28,6 +28,8 @@ git checkout pre-pivot -- <path>
 | Camera notes from a dead host | `docs/API_TESTING_NOTES.md` | Its site and camera inventory was captured on a host that no longer resolves. `tools/discover_cameras.py` prints the live topology. |
 | A login probe | `tools/probe_login.py` | The question it explored is answered in `docs/API_SURFACES.md` and pinned by `tests/internal_api/test_auth_apis.py`. |
 | Guessed QA Touch mappings | 13 rows with `auto_matched: true` in `config/qatouch_case_mapping.json` | They mapped API tests to UI cases. Only rows a person reviewed stay. |
+| The production spec snapshot | `schemas/openapi_spec_prod.json` | Nothing read it, and no `config/env/` file can regenerate it. `schemas/openapi_spec_qa.json` stays. |
+| A Bruno guide | `docs/BRUNO_GUIDE.md` | Its bootstrap signed in through the captcha-gated login with a plain password and a fixed enterprise id. Bruno is not part of the automation. |
 
 ## What stayed and why
 
@@ -36,7 +38,7 @@ git checkout pre-pivot -- <path>
 - The collect floor (`config/collect_floor.json`), because it is the only
   check that notices a suite shrinking.
 - `KNOWN_LIMITATIONS` in `tests/internal_api/data/endpoints.py`, with every
-  reason marked as measured on the previous QA server, because a skip
-  with a stated reason beats a deleted endpoint.
+  reason marked with the server and the month it was measured on, because
+  a skip with a stated reason beats a deleted endpoint.
 - The QA Touch upload path, off by default, because a team on QA Touch
   can turn it on with 3 keys in `.env`.

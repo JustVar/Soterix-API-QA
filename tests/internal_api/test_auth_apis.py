@@ -18,9 +18,9 @@ import pytest
 import requests
 import urllib3
 
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+from api_clients.tls import ssl_verify
 
-_VERIFY = os.getenv("SSL_VERIFY", "false").lower() in ("true", "1", "yes")
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
 @pytest.mark.api
@@ -63,7 +63,7 @@ def test_login_contract_returns_a_session(api_base_url, login_data):
         "username": "Example Label",
         "password": hashlib.sha512(login_data["password"].encode("utf-8")).hexdigest(),
     }
-    r = requests.post(f"{base}/REST/central/user/login", json=body, timeout=20, verify=_VERIFY)
+    r = requests.post(f"{base}/REST/central/user/login", json=body, timeout=20, verify=ssl_verify())
     assert r.status_code == 200, f"Login answered {r.status_code}: {r.text[:300]}"
     envelope = r.json()
     assert envelope.get("code") == 200, f"Unexpected code: {envelope.get('code')}, body: {str(envelope)[:300]}"
@@ -73,7 +73,7 @@ def test_login_contract_returns_a_session(api_base_url, login_data):
 
     s = requests.get(
         f"{base}/REST/central/user/session",
-        headers={"Cookie": f"JSESSIONID={token}"}, timeout=20, verify=_VERIFY)
+        headers={"Cookie": f"JSESSIONID={token}"}, timeout=20, verify=ssl_verify())
     assert s.status_code == 200, f"Session check answered {s.status_code}: {s.text[:300]}"
     session = s.json()
     assert session.get("code") == 200, f"Unexpected code: {session.get('code')}"
@@ -97,7 +97,7 @@ def test_central_login_rejects_invalid_credentials(api_base_url):
         url,
         json={"username": "not-a-real-user@example.invalid", "password": "wrong-password"},
         timeout=15,
-        verify=_VERIFY,
+        verify=ssl_verify(),
     )
     # Vendor returns 401/403 for bad creds; some deployments return 200 with
     # an error body. Either way, the response must NOT contain a usable token.
@@ -133,7 +133,7 @@ def test_sso_login_accepts_valid_credentials(api_base_url):
             "password": os.environ["SSO_TEST_PASSWORD"],
         },
         timeout=15,
-        verify=_VERIFY,
+        verify=ssl_verify(),
     )
     r.raise_for_status()
     body = r.json()

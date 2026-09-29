@@ -171,22 +171,24 @@ GET_ENDPOINTS = [
 # keep the row only if the endpoint still fails for the stated reason.
 # ---------------------------------------------------------------------------
 
-# Every reason below was measured on the previous QA server. A new server
-# does not inherit them silently: the prefix says so in the skip message.
-_PREVIOUS = "measured on the previous QA server; re-measure here: "
+# Every reason below was measured on qa.example.invalid in 2026-09.
+# README.md says whether that is still the server config/env/qa.py names.
+# A new server does not inherit the rows silently: the prefix says so in
+# the skip message.
+_MEASURED = "measured on qa.example.invalid in 2026-09, re-measure on a new server: "
 
 # One shared reason for the endpoints that the server proxies to a site's
 # recorder (VMS). Sites without a recorder answer 502 on all of them while
 # /channel answers 200. On a server whose sites have a recorder, delete
 # these rows.
-VMS_502 = _PREVIOUS + ("502: the endpoint is proxied to the site's VMS backend, which the emulated sites do not serve. Measured on 2 sites outside pytest while /channel answered 200 on both.")
+VMS_502 = _MEASURED + ("502: the endpoint is proxied to the site's VMS backend, which the emulated sites do not serve. Measured on 2 sites outside pytest while /channel answered 200 on both.")
 
 KNOWN_LIMITATIONS = {
-    "get_site_nonenterprise": _PREVIOUS + "requires central/platform admin role (got 400: 'not allowed to perform this operation')",
-    "get_site_by_enterprise_customer": _PREVIOUS + "requires central super admin role (got 400: 'not a super admin in the central server')",
-    "get_all_streaming_servers": _PREVIOUS + "requires central super admin role (got 400: 'not a super admin in the central server')",
-    "get_all_analytics_servers": _PREVIOUS + "requires 'partner' role in the central server (got 400: 'not a partner')",
-    "get_application_version": _PREVIOUS + "404 'File not available or invalid installation' - endpoint not provisioned on that server",
+    "get_site_nonenterprise": _MEASURED + "requires central/platform admin role (got 400: 'not allowed to perform this operation')",
+    "get_site_by_enterprise_customer": _MEASURED + "requires central super admin role (got 400: 'not a super admin in the central server')",
+    "get_all_streaming_servers": _MEASURED + "requires central super admin role (got 400: 'not a super admin in the central server')",
+    "get_all_analytics_servers": _MEASURED + "requires 'partner' role in the central server (got 400: 'not a partner')",
+    "get_application_version": _MEASURED + "404 'File not available or invalid installation' - endpoint not provisioned on that server",
     "get_all_privacy_zone": VMS_502,
     "get_all_user_profiles": VMS_502,
     "get_all_users_on_site": VMS_502,

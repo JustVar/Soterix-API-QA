@@ -5,9 +5,10 @@
 This folder holds the internal-API suite: smoke-depth tests (marked
 `@pytest.mark.smoke`) of the endpoints the web app uses, a GET sweep over
 every read-only endpoint in `data/endpoints.py`, 2 end-to-end flows (clip
-export, media), and offline unit tests of the HTTP exchange log and the
-session cache. `pytest --collect-only tests/internal_api` prints the
-count. Suite fixtures live in `conftest.py` in this folder.
+export, media), and offline unit tests of the HTTP exchange log, the
+session cache and the site and camera choice. `pytest --collect-only
+tests/internal_api` prints the count. Suite fixtures live in `conftest.py`
+in this folder.
 
 `test_api_integration_key_apis.py` walks the API Integration key lifecycle
 (create, disable, enable, delete) with a throwaway key and verifies each
@@ -50,7 +51,10 @@ variable in `.env`.
   the site.
 - `data_site`, `data_site_id`, `data_channel_id` - the site and camera that
   `test_site_name` and `test_camera_name` in `config/env/` name, resolved
-  by name. Tests that write data use these, never `TEST_SITE_ID`.
+  by name. Tests that write data use these, never `TEST_SITE_ID`. A blank
+  name means the first site by name with a camera, and the first camera
+  by name on it (`api_clients/data_choice.py`, pinned offline by
+  `test_data_choice.py`). The run prints the site and the camera it used.
 - `data_write_gate` - skips a writing test unless the env allows both
   writes and deletes (`allow_write`, `allow_delete` in `config/env/`)
 - `authed_session`, `discovery_context`, `recorded_clip_window` - the raw
@@ -74,7 +78,8 @@ The full list with request and response shapes is
 ## The sweep's skip list
 
 `data/endpoints.py` holds `KNOWN_LIMITATIONS`, a dict of endpoint name to
-reason. The sweep skips those endpoints with that reason. Every reason was
-measured on the previous QA server. On a new server, delete a row, run the
-sweep, and keep the row only if the endpoint still fails for the stated
-reason. A skip is not a pass.
+reason. The sweep skips those endpoints with that reason. Every reason
+names the server and the month it was measured on (`_MEASURED` in that
+file). On a new server, delete a row, run the sweep, and keep the row
+only if the endpoint still fails for the stated reason. A skip is not a
+pass.

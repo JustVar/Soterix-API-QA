@@ -139,7 +139,8 @@ the assertion. Request and response shapes: `INTERNAL_API_INVENTORY.md`.
 
 ## 2. Integration API (`/v-integration-api`)
 
-Swagger UI: <https://qa.example.invalid/v-integration-api/swagger-ui/index.html>
+Swagger UI: `<integration_api_base_url>/swagger-ui/index.html`, with
+`integration_api_base_url` from `config/env/qa.py`.
 Machine-readable spec: `/v-integration-api/v3/api-docs`
 
 This surface is published for **third-party integrators**. It is a deliberately
@@ -248,7 +249,7 @@ One file names the server: `config/env/qa.py`. Its keys:
 | `api_base_url` | `base_url` + `/v-apiserver` |
 | `integration_api_base_url` | `base_url` + `/v-integration-api`, or `None` on a server without the surface |
 | `allow_write`, `allow_delete` | both must be `True` for tests that create data to run |
-| `test_site_name`, `test_camera_name` | a site and a camera the account can see, resolved by name |
+| `test_site_name`, `test_camera_name` | a site and a camera the account can see, resolved by name. Optional: blank means the first site by name with a camera, and the first camera by name on it |
 
 The account is `QA_USER` and `QA_PASSWORD` in `.env`. `ENV=<name>` selects
 `config/env/<name>.py`. A second server is a copy of `qa.py`.
@@ -260,7 +261,8 @@ Sites and channels differ per account, so the suite discovers them at run time.
 **Read-only tests** use the discovery fixtures (`test_site_id`,
 `test_channel_ids`) rather than hardcoded ids. Set `TEST_SITE_ID` in `.env`
 only to pin a specific site your account can reach. A site id your account
-cannot reach returns 400.
+cannot reach returns 400. `TEST_CHANNEL_ID` pins the channel of the sweep
+and the e2e flows the same way.
 
 **Tests that write data** (locations, bookmarks) use the fixtures
 `data_site_id` and `data_channel_id`. They resolve the site by NAME from
@@ -269,6 +271,15 @@ cannot reach returns 400.
 once carried the wrong id in both repos. If you set `TEST_SITE_ID`, write
 the site name next to it in `.env`. When a name does not resolve, the skip
 message lists the names the account sees.
+
+Both names may stay blank. The run then picks the first site by name that
+the account can see, with status `REGISTERED` and at least 1 camera in its
+location tree, and the first camera by name on it. Sorted by name, never
+by the server's order, because that order changes when a camera is added.
+A channel whose `isChannelDeleted` is set is not a camera. A name that is
+set is checked, never replaced. The rule is `api_clients/data_choice.py`,
+pinned offline by `tests/internal_api/test_data_choice.py`, and the run
+prints the site and the camera it used (`[DATA SITE]`, `[DATA CAMERA]`).
 
 Writes are gated by `allow_write` and `allow_delete` in `config/env/`
 (fixture `data_write_gate`). Every name a test creates starts with

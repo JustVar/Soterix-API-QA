@@ -22,6 +22,8 @@ import urllib3
 from jsonschema import ValidationError
 from jsonschema import validate as jsonschema_validate
 
+from .tls import ssl_verify
+
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 LOG_PATH = os.path.join(ROOT, "logs", "api_requests.log")
 os.makedirs(os.path.dirname(LOG_PATH), exist_ok=True)
@@ -165,17 +167,9 @@ class BaseAPIClient:
         # Last EXCHANGE_LIMIT exchanges this client made. See recent_exchanges().
         self.exchanges: deque = deque(maxlen=EXCHANGE_LIMIT)
         _clients.add(self)
-        # SSL verification: Check SSL_VERIFY env var first, then fall back to ENV-based logic
-        ssl_verify_env = os.getenv("SSL_VERIFY", "").lower()
-        if ssl_verify_env in ("false", "0", "no"):
-            self.verify = False
-        elif ssl_verify_env in ("true", "1", "yes"):
-            self.verify = True
-        else:
-            # Default: disable SSL verification for non-production environments
-            # This matches auth_helper.py logic and avoids SSL errors with self-signed certs
-            env = os.getenv("ENV", "").lower()
-            self.verify = env in ("prod", "production")
+        # TLS: the one rule of the repo (api_clients/tls.py), so this client
+        # and AuthHelper cannot disagree.
+        self.verify = ssl_verify()
 
     def _headers(self) -> dict[str, str]:
         h = {"Accept": "application/json"}

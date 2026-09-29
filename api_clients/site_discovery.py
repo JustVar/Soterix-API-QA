@@ -5,56 +5,58 @@ from typing import Any
 
 import requests
 
+from .tls import ssl_verify
+
 
 class SiteDiscovery:
     """Discovers available sites and enterprise IDs for the logged-in user."""
-    
+
     def __init__(self, base_url: str, auth_token: str):
         self.base_url = base_url.rstrip("/")
         self.auth_token = auth_token
         self._sites_cache: list[dict[str, Any]] | None = None
-    
+
     def get_user_sites(self, user_email: str) -> list[dict[str, Any]]:
         """All sites the user can see, from /REST/site/user/{email}.
         Cached after the first call."""
         if self._sites_cache is not None:
             return self._sites_cache
-        
+
         url = f"{self.base_url}/REST/site/user/{user_email}"
         headers = {
             "Cookie": f"JSESSIONID={self.auth_token}",
             "Content-Type": "application/json",
         }
-        
-        response = requests.get(url, headers=headers, verify=False)
+
+        response = requests.get(url, headers=headers, verify=ssl_verify(), timeout=30)
         response.raise_for_status()
-        
+
         data = response.json()
         sites = data.get("result", [])
-        
+
         self._sites_cache = sites
-        
+
         print(f"[SITE DISCOVERY] Found {len(sites)} site(s) for user {user_email}")
         for site in sites:
             print(f"  - {site.get('name')} (Site ID: {site.get('siteId')}, Enterprise ID: {site.get('enterpriseId')})")
-        
+
         return sites
-    
+
     def get_default_site(self, user_email: str) -> dict[str, Any] | None:
         """Get the first/default site for a user."""
         sites = self.get_user_sites(user_email)
         return sites[0] if sites else None
-    
+
     def get_default_site_id(self, user_email: str) -> int | None:
         """Get the default site ID for a user."""
         site = self.get_default_site(user_email)
         return site.get("siteId") if site else None
-    
+
     def get_default_enterprise_id(self, user_email: str) -> int | None:
         """Get the enterprise ID from the user's default site."""
         site = self.get_default_site(user_email)
         return site.get("enterpriseId") if site else None
-    
+
     def get_site_by_name(self, user_email: str, site_name: str) -> dict[str, Any] | None:
         """Find a specific site by name."""
         sites = self.get_user_sites(user_email)
@@ -62,7 +64,7 @@ class SiteDiscovery:
             if site.get("name", "").lower() == site_name.lower():
                 return site
         return None
-    
+
     def clear_cache(self):
         """Clear the cached sites."""
         self._sites_cache = None

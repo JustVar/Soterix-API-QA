@@ -23,6 +23,7 @@ Expected:
 """
 import time
 import uuid
+from urllib.parse import urlparse
 
 import pytest
 import requests
@@ -59,6 +60,9 @@ def key_admin(api_base_url, api_auth_token, env_config):
     s.headers["Cookie"] = f"JSESSIONID={api_auth_token}"
     key_name = f"{KEY_PREFIX} {uuid.uuid4().hex[:8]} (safe to delete)"
     ctx = {"session": s, "base": api_base_url, "surface": integration_url,
+           # The key's host allowlist names the server under test, so a
+           # second server needs no edit here.
+           "host": urlparse(env_config["base_url"]).hostname,
            "enterprise_id": None, "key_name": key_name}
     yield ctx
 
@@ -106,7 +110,7 @@ def test_key_lifecycle(key_admin, discovered_enterprise_id):
 
     # 1. Create
     body = {"enterpriseId": ent, "name": key_name,
-            "host": ["qa.example.invalid"],
+            "host": [ctx["host"]],
             "description": ["Created by the API test suite, deleted at teardown."]}
     r = s.post(f"{base}/REST/api/integration/key/generate", json=body, timeout=30)
     assert r.status_code == 200, f"generate failed: {r.status_code} {r.text[:200]}"

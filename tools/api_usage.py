@@ -16,8 +16,15 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 SCAN = ("api_clients", "tests")
+# Files whose /REST/ strings are not calls: the exchange-log unit test
+# uses made-up paths, and _support/config.py holds the prefix constants.
+SKIP = {"tests/internal_api/test_http_exchange_log.py", "tests/internal_api/_support/config.py"}
 INVENTORY = ROOT / "docs" / "INTERNAL_API_INVENTORY.md"
-PATH_RE = re.compile(r"/REST/[A-Za-z0-9_{}/.:-]+")
+# A path is plain characters and {placeholders} closed on the same line.
+# The match stops before a brace that does not close, so an f-string
+# expression the class cannot read, such as {k['key']}, ends the path
+# instead of leaving a fragment like /REST/x/{k in the report.
+PATH_RE = re.compile(r"/REST/(?:[A-Za-z0-9_/.:-]|\{[^{}\n]*\})+")
 
 
 def normalise(path: str) -> str:
@@ -33,6 +40,8 @@ def scan() -> dict[str, set[str]]:
     for top in SCAN:
         for f in (ROOT / top).rglob("*.py"):
             rel = f.relative_to(ROOT).as_posix()
+            if rel in SKIP:
+                continue
             for m in PATH_RE.findall(f.read_text(encoding="utf-8", errors="replace")):
                 if "..." in m:
                     continue  # prose, not a path

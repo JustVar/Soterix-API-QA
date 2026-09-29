@@ -2,7 +2,7 @@
   "comment": "Lowest acceptable collected-test count per suite. Higher is always fine. Lower needs a reason in the commit message. See soterix_qa_shared.gates.collect_floor.",
   "suites": {
     "integration api": 17,
-    "internal api": 167,
-    "whole repo": 197
+    "internal api": 170,
+    "whole repo": 205
   }
 }

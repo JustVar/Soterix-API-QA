@@ -9,16 +9,17 @@ Measured on this repo's 31 rows when the gate was added:
 
   * 18 rows, `auto_matched: false`, map 5 cases whose titles begin "API -
     Integration". Those cases were written FOR these tests. Every one is
-    correct.
-  * 13 rows, `auto_matched: true`, map 7 cases that are all UI behaviour:
-    "Verify tooltip on site status", "Verify Insights icon remains
-    highlighted in left navigation", "Verify online camera count updates
-    correctly in Maps widget". Not one describes an API call. Every one is
-    wrong, including the row scored 1.0 - the score means nothing.
+    correct. They carry `reviewed: true` and are the rows the file holds.
+  * 13 rows, `auto_matched: true`, mapped 7 cases that were all UI
+    behaviour ("Verify tooltip on site status", "Verify online camera
+    count updates correctly in Maps widget"). Not one described an API
+    call. Every one was wrong, including the row scored 1.0: a word-overlap
+    score means nothing. Those rows are deleted from the file.
 
 And the reason a gate is not optional here: of the 7 wrongly-matched cases,
-all 7 appear in the live QA Touch runs, while 0 of the 5 correct ones do.
-Ungated, the ONLY results that would land are the wrong ones.
+all 7 appeared in the live QA Touch runs, while 0 of the 5 correct ones
+did. Ungated, the ONLY results that would land were the wrong ones. A new
+row uploads only after a person sets `reviewed: true` on it.
 
 The reporter reads this through the shim in plugins/qatouch_reporter.py.
 The UI repo has the same gate, in a module of the same name.

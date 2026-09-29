@@ -1,11 +1,11 @@
-# API Surfaces, Auth Contracts, and Environments
+# API Surfaces, Auth Contracts, and Test Data
 
 Last verified: **2026-08-27** (section 2), **2026-08-24** (section 1)
 
-There are **two separate APIs** behind the same hostnames. They have different
-base paths, different authentication, and different availability per environment.
-Confusing them is the most likely source of wasted debugging time, so this doc is
-the single reference for both.
+There are **two separate APIs** behind the same hostname. They have different
+base paths and different authentication, and not every server deploys the
+second one. Confusing them is the most likely source of wasted debugging
+time, so this doc is the single reference for both.
 
 | | Internal API | Integration API |
 |---|---|---|
@@ -14,7 +14,7 @@ the single reference for both.
 | Scope | Everything the web app does | Read-only subset for 3rd parties |
 | Methods | GET / POST / PUT / DELETE | GET only |
 | Documented? | Vendor swagger is stale. Shapes come from testing: `INTERNAL_API_INVENTORY.md` | Swagger UI published |
-| Available | QA, stage, prod | **QA only** (404 elsewhere as of 2026-08-05) |
+| Available | every server | not every server: `integration_api_base_url` in `config/env/` is `None` where it is missing |
 
 ---
 
@@ -54,12 +54,11 @@ pins this contract (verified 2026-08-24).
   names the fix (table below).
 - **Plaintext passwords are always rejected.** The password must be SHA512-hashed.
 - **`/REST/sso/login`** returns "Missing one or more mandatory request
-  parameter(s)" for every shape tried; its required parameters are unknown.
+  parameter(s)" for every shape tried. Its required parameters are unknown.
 
 The `accountid` / `"Example Label"` / SHA512 contract was read from the web app's own
-JS bundle (chunk `6031-*.js`) and confirmed **byte-identical across QA, stage and
-prod** - the same build artifact is deployed to all three. If login ever breaks
-with correct credentials, re-check that chunk first.
+JS bundle (chunk `6031-*.js`), the same build on every server seen so far.
+If login ever breaks with correct credentials, re-check that chunk first.
 
 ### Reading login failures
 
@@ -67,9 +66,9 @@ The server distinguishes these, and each needs a different fix:
 
 | Response | Meaning | Fix |
 |---|---|---|
-| `404` "There is no user with the userid!" | Account does not exist on this host | Wrong environment for this credential |
+| `404` "There is no user with the userid!" | Account does not exist on this host | Check `QA_USER` in `.env` and `base_url` in `config/env/qa.py` |
 | `400` "Invalid username and/or password!" | Account exists, password rejected | Stored password is stale |
-| Connection error / DNS failure | Host is wrong or unreachable | Check `BASE_URL`, VPN |
+| Connection error / DNS failure | Host is wrong or unreachable | Check `base_url` in `config/env/qa.py`, VPN |
 
 `AuthHelper` raises these as distinct messages - trust them.
 
@@ -173,7 +172,7 @@ GET    /v-apiserver/REST/api/integration/key/{key}/status/{0|1}  disable/enable
 DELETE /v-apiserver/REST/api/integration/key/{key}               delete
 ```
 
-Disable and delete take effect on the surface (401) within seconds; the
+Disable and delete take effect on the surface (401) within seconds. The
 lifecycle test in `tests/internal_api/test_api_integration_key_apis.py`
 verifies the whole cycle. Note: a key's `host[]` allowlist did NOT restrict
 callers in live checks (a key listing only the QA host worked from an
@@ -208,7 +207,7 @@ list as complete.
 - `/REST/stream/{siteid}/startlive/{channelid}`
 - `/REST/stream/{siteid}/startarchive/{channelid}/{starttimestamp}`
 
-Response contracts that a naive "assert 200" gets wrong (all verified live;
+Response contracts that a naive "assert 200" gets wrong (all verified live,
 the sweep in `tests/integration_api/` encodes them per endpoint):
 
 - `/REST/event` and `/REST/stream` answer 200 with **no data**: a portal
@@ -221,10 +220,6 @@ the sweep in `tests/integration_api/` encodes them per endpoint):
   session**, so the surface is not strictly read-only in effect. The TTL of
   a session whose stream URL is never connected is unknown. Ask the
   platform team and record the answer here.
-- Jira NC-20224 (channel status/snap) and NC-20225 (channel groups) are
-  marked Complete, but their endpoints were **not reachable on QA** on
-  2026-08-27 (404 on every path variant probed). Raised as a gap; re-check
-  the swagger before assuming this list is stale.
 
 ### Why this matters for test design
 
@@ -243,15 +238,20 @@ the date each was verified.
 
 ---
 
-## 3. Environments
+## 3. The server and the test data
 
-| Env | Host | Internal API | Integration API | Account |
-|---|---|---|---|---|
-| QA | `https://qa.example.invalid` | verified | verified | your own |
-| Stage | `https://staging.example.invalid` | verified | 404 (not deployed) | your own |
-| QA production box | `https://app.example.invalid` | verified 2026-08-08 | 404 (not deployed) | `hardware-lab@soterixsystems.com` (shared) |
+One file names the server: `config/env/qa.py`. Its keys:
 
-Config lives in `config/env/{qa,stage,prod}.py`; hosts there are authoritative.
+| Key | What it is |
+|---|---|
+| `base_url` | the site root |
+| `api_base_url` | `base_url` + `/v-apiserver` |
+| `integration_api_base_url` | `base_url` + `/v-integration-api`, or `None` on a server without the surface |
+| `allow_write`, `allow_delete` | both must be `True` for tests that create data to run |
+| `test_site_name`, `test_camera_name` | a site and a camera the account can see, resolved by name |
+
+The account is `QA_USER` and `QA_PASSWORD` in `.env`. `ENV=<name>` selects
+`config/env/<name>.py`. A second server is a copy of `qa.py`.
 
 ### Test data
 
@@ -265,18 +265,14 @@ cannot reach returns 400.
 **Tests that write data** (locations, bookmarks) use the fixtures
 `data_site_id` and `data_channel_id`. They resolve the site by NAME from
 `test_site_name` and `test_camera_name` in `config/env/`, never from
-`TEST_SITE_ID`. Name the site, not a number: on QA, `TEST_SITE_ID=17` is
-"Example Corporate Office", while the UI suite works on
-"Newtown Action Area" (siteId 16, camera "main gate" = channel 97). Both
-repos carried 17 by mistake. If you set `TEST_SITE_ID`, write the site name
-next to it in `.env`.
+`TEST_SITE_ID`. Name the site, not a number: two sites with similar names
+once carried the wrong id in both repos. If you set `TEST_SITE_ID`, write
+the site name next to it in `.env`. When a name does not resolve, the skip
+message lists the names the account sees.
 
 Writes are gated by `allow_write` and `allow_delete` in `config/env/`
-(fixture `data_write_gate`). QA allows both, stage allows no deletes, prod
-allows neither. Every name a test creates starts with `AutoTest ` and the
-test removes it at teardown.
-
-QA testing happens mainly on the india box. Sign in with your own account.
+(fixture `data_write_gate`). Every name a test creates starts with
+`AutoTest ` and the test removes it at teardown.
 
 ---
 
@@ -284,7 +280,6 @@ QA testing happens mainly on the india box. Sign in with your own account.
 
 - ~~Obtain and store the integration API key~~ done 2026-08-27: the QA
   tenant key "QA Automation - DO NOT DELETE" backs `VSAAS_INTEGRATION_KEY`.
-- Integration API is QA-only; re-check stage/prod when it is rolled out.
 - `/REST/sso/login` parameter contract is still unknown.
 - `POST /REST/site/{site}/getuserviewlayouts` working payload is unknown
   (`{}` and `{"mode": "live"}` both answer the wrong message).

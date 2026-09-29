@@ -1,10 +1,9 @@
 """
 Clip bookmark API contract
 
-The UI suite (Soterix-WebApp-QA, tests/shared/api/fixtures.py, fixture
-api_bookmark) seeds bookmarks through these 3 endpoints. A contract
-change here breaks that setup, so these tests pin the exact requests and
-answers. Verified on QA 2026-08-24.
+The UI suite (Soterix-WebApp-QA, fixture api_bookmark) seeds bookmarks
+through these 3 endpoints. A contract change here breaks that setup, so
+these tests pin the exact requests and answers.
 
 Catalog rows (see docs/INTERNAL_API_INVENTORY.md):
 - POST   /REST/clipbookmark (query parameters plus a multipart `snap` part)

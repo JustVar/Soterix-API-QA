@@ -34,9 +34,9 @@ def integration_key():
 def integration_base_url(env_config):
     """Base URL for /v-integration-api. Skips where the surface is absent.
 
-    Only config/env/qa.py carries a URL. Stage and prod carry None because
-    the surface 404s there (as of 2026-08-05). Read with .get() so partner
-    config variants without the key also skip instead of erroring.
+    config/env/<ENV>.py carries the URL as integration_api_base_url, or
+    None on a server that does not deploy the surface. Read with .get() so
+    a config file without the key also skips instead of erroring.
     """
     url = env_config.get("integration_api_base_url")
     if not url:

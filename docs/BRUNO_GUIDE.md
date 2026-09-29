@@ -2,7 +2,7 @@
 
 This guide explains what Bruno is, why we use it alongside the pytest suite, and how to drive the Soterix VSaaS REST API with it.
 
-## TL;DR
+## Summary
 
 - **pytest runs the automated API tests.** No external tool needed at test runtime.
 - **Bruno is for humans** - interactive poking, response inspection, sharing endpoint collections, prototyping a request before promoting it into a pytest test.
@@ -31,9 +31,7 @@ If your team is already deep into Postman, Postman is fine - the workflow below 
 tests/bruno/
 ├── bruno.json              # collection manifest
 ├── environments/
-│   ├── staging.bru         # https://staging.example.invalid
-│   ├── qa.bru              # https://qa.example.invalid
-│   └── prod.bru            # https://app.example.invalid
+│   └── qa.bru              # base_url from config/env/qa.py
 ├── Auth/
 │   ├── Login.bru
 │   └── Get Session.bru
@@ -56,11 +54,11 @@ The collection is **not yet committed** - see "Bootstrapping the collection" bel
 ## Bootstrapping the collection (one-time, ~15 minutes)
 
 1. Open Bruno -> **Create Collection** -> choose `tests/bruno/` inside this repo.
-2. **Add an environment** named `staging`:
-   - `baseUrl` = `https://staging.example.invalid/v-apiserver`
+2. **Add an environment** named `qa`:
+   - `baseUrl` = the `api_base_url` value in `config/env/qa.py`
    - `enterpriseId` = `1`
-   - `username` = your staging email
-3. Repeat for `qa` and `prod` environments (different `baseUrl`).
+   - `username` = your QA account email
+3. A second server is a second environment with its own `baseUrl`.
 4. Add a **Pre-request script** at the collection level that logs in and stores `JSESSIONID`:
 
    ```js
@@ -75,7 +73,7 @@ The collection is **not yet committed** - see "Bootstrapping the collection" bel
    ```
 
 5. Add **collection-level headers**: `Cookie: JSESSIONID={{JSESSIONID}}` and `Accept: application/json`.
-6. Save & commit the collection (commit `.bru` files; do NOT commit a passwords file - use Bruno's secret env vars or a local `.env.local`).
+6. Save & commit the collection (commit `.bru` files. Do NOT commit a passwords file. Use Bruno's secret env vars or a local `.env.local`).
 
 ## Day-to-day workflow
 
@@ -92,8 +90,8 @@ The collection is **not yet committed** - see "Bootstrapping the collection" bel
 
 1. Find the failing endpoint in `docs/API_ENDPOINTS.md`.
 2. Open the matching Bruno request, hit Send.
-3. If Bruno succeeds but Playwright fails -> check headers, body, content-type the Playwright client sends.
-4. If Bruno also fails -> server-side problem; capture response and file in QA Ops Hub.
+3. If Bruno succeeds but pytest fails -> check the headers, body and content-type the client in `api_clients/` sends.
+4. If Bruno also fails -> server-side problem. Capture the response and file it in Jira.
 
 ### Sharing a repro with the platform team
 
@@ -104,7 +102,7 @@ The collection is **not yet committed** - see "Bootstrapping the collection" bel
 ## Important rules
 
 1. **Never commit credentials.** Use Bruno's secret env vars or a gitignored `.env.local`. The `.bru` files in `environments/` should only contain non-secret host URLs and enterprise IDs.
-2. **Don't run destructive requests against prod.** Bruno doesn't have built-in guardrails - be careful with POST/PUT/DELETE in the `prod` environment.
+2. **Do not run destructive requests against a server you do not own.** Bruno has no guardrails. The pytest suite has `allow_write` and `allow_delete` in `config/env/`. Bruno has neither.
 3. **Keep the collection aligned with `docs/API_ENDPOINTS.md`.** When you add a Bruno request, add or update the corresponding row in the endpoint catalog so the two stay in sync.
 4. **Bruno is exploratory, the pytest suite is authoritative.** A green Bruno request does not count as test coverage - only a smoke test in `tests/internal_api/` does.
 
@@ -122,5 +120,5 @@ We don't, currently. CI runs the pytest collect-gate. Bruno's CLI (`bru run`) co
 ## Related docs
 
 - [API_ENDPOINTS.md](./API_ENDPOINTS.md) - master catalog of every observed endpoint + smoke coverage status
-- [API_TESTING_NOTES.md](./API_TESTING_NOTES.md) - QA environment runbook (site/camera inventory, JSESSIONID auth notes)
+- [API_SURFACES.md](./API_SURFACES.md) - the auth contracts and the test-data rules
 - `api_clients/base_api_client.py` - the requests-based client the internal-API tests extend

@@ -4,9 +4,9 @@ from the Swagger/OpenAPI spec.
 
 Design choice: we ONLY auto-run GET endpoints here. POST/PUT/DELETE endpoints
 create, mutate, or delete real objects (users, sites, storage configs,
-recordings, licenses...) on your staging server, so firing all of them
-blindly would be unsafe. Those belong in tests/functional/ instead, where
-you control exactly what test data gets created.
+recordings, licenses...) on the server, so firing all of them blindly
+would be unsafe. Those get deliberate tests with controlled data
+(docs/CONVENTIONS.md).
 
 An unresolved `{placeholder}` (no channel on the site, say) skips rather
 than fails - a data gap, not an API bug. The assertion is deliberately

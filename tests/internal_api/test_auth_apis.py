@@ -49,8 +49,8 @@ def test_login_contract_returns_a_session(api_base_url, login_data):
     The body is {accountid: <email>, username: "Example Label", password: <sha512
     hex>}. "Example Label" is the literal the web client sends. The account goes
     in accountid. No captcha is involved on this path. The UI suite
-    (Soterix-WebApp-QA, tests/shared/api/client.py) signs in with this
-    exact body, so a change here breaks its test data setup.
+    (Soterix-WebApp-QA) signs in with this exact body to build its test
+    data, so a change here breaks its setup.
     """
     import hashlib
 

@@ -1,25 +1,21 @@
 # Soterix VSaaS - API Endpoint Catalog
 
-Living catalog of every REST endpoint the NexaiQ-Core SPA exercises, with smoke-test coverage status. Source of truth: live network capture on `staging.example.invalid`. Vendor swagger is currently stale (per 2026-05-15 audit) - trust this doc over swagger until a refreshed spec is delivered.
+Living catalog of every REST endpoint the NexaiQ-Core SPA exercises, with smoke-test coverage status. Source of truth: a live network capture on a staging server. Vendor swagger is currently stale (per 2026-05-15 audit) - trust this doc over swagger until a refreshed spec is delivered.
 
 This file says where each call surfaces and whether a test covers it. Request
 and response shapes, and the date each was verified on QA, live in
 [INTERNAL_API_INVENTORY.md](./INTERNAL_API_INVENTORY.md).
 
-Last updated: **2026-08-24** (coverage flags and the auth rows; the capture is still from 2026-05-15)
+Last updated: **2026-08-24** (coverage flags and the auth rows. The capture is still from 2026-05-15)
 Capture method: **live network capture in Chrome DevTools, signed in as a QA account**
 
 ## Base path
 
-All endpoints below are relative to `<host>/v-apiserver`. Example: `/REST/central/user/session` is fetched from `https://staging.example.invalid/v-apiserver/REST/central/user/session`.
+All endpoints below are relative to `<host>/v-apiserver`. Example: `/REST/central/user/session` is fetched from `<host>/v-apiserver/REST/central/user/session`.
 
-Per-environment host:
-
-| Env | Host |
-|---|---|
-| prod | `https://app.example.invalid` |
-| staging | `https://staging.example.invalid` |
-| qa | `https://qa.example.invalid` |
+The host is `base_url` in `config/env/qa.py`. The capture behind this
+catalog was taken on a staging server that is no longer a target. The paths
+are the product's, not the server's.
 
 Auth: JSESSIONID cookie (not JWT). See `api_clients/auth_helper.py`.
 
@@ -39,7 +35,7 @@ Auth: JSESSIONID cookie (not JWT). See `api_clients/auth_helper.py`.
 | covered | POST | `/REST/central/user/login` | The login the web client uses (JSON body, SHA512 password, no captcha). Used by `auth_helper.py`. `test_auth_apis.py::test_login_contract_returns_a_session` |
 | covered | POST | `/REST/central/user/auth/login` | Captcha-gated browser login. Unusable from an API client. `test_auth_apis.py` pins the rejection. |
 | uncovered | POST | `/REST/sso/login` | Parameters unknown. `test_auth_apis.py` skips without `SSO_TEST_USERNAME`. Not used by `auth_helper.py`. |
-| untriggered | POST | `/REST/site/{siteId}/auth/logout` | Inferred from prior swagger; not yet exercised on staging. |
+| untriggered | POST | `/REST/site/{siteId}/auth/logout` | Inferred from prior swagger. Not yet exercised. |
 | covered | GET | `/REST/central/user/session` | `test_user_apis.py::test_get_user_session` |
 | covered | GET | `/REST/central/userprofile/roles` | `test_user_apis.py::test_get_user_roles` |
 | covered | GET | `/REST/central/role/{enterpriseId}` | `test_user_apis.py::test_get_roles_by_enterprise` |
@@ -194,8 +190,8 @@ Endpoint pattern: `firestore.googleapis.com/.../Listen/channel?...`
 | **Bruno** (`tests/bruno/`, not yet in this repo) | Human-friendly request collection, plain-file checked into git | Exploring a new endpoint, debugging a failing smoke test, sharing a repro with the platform team - see [BRUNO_GUIDE.md](./BRUNO_GUIDE.md) |
 | **Chrome DevTools network capture** | Capturing what the SPA actually calls | First step in discovering an undocumented endpoint |
 
-pytest is the test runtime. This repo is browser-free. Bruno is for exploration; it is not a CI dependency.
+pytest is the test runtime. This repo is browser-free. Bruno is for exploration. It is not a CI dependency.
 
 ## Why no swagger?
 
-Vendor swagger at `https://app.example.invalid/v-apiserver/v3/api-docs` was audited 2026-05-15 and found stale - at least 14 production endpoints (most of the dashboard, LPR, media, and analytics surfaces) are missing from it, and the documented base URL is wrong. Treat swagger as advisory, not authoritative. This document supersedes it for QA test planning.
+The vendor swagger (`<host>/v-apiserver/v3/api-docs`) was audited 2026-05-15 and found stale - at least 14 production endpoints (most of the dashboard, LPR, media, and analytics surfaces) are missing from it, and the documented base URL is wrong. Treat swagger as advisory, not authoritative. This document supersedes it for QA test planning.

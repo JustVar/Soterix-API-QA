@@ -1,2 +1,0 @@
-{"at": "2026-08-31T18:25:10+00:00", "branch": "main", "commit": "c85a35b", "counts": {"failed": 0, "passed": 17, "skipped": 0}, "dur_s": 7.6, "env": "unknown", "exit": 0, "failed": [], "project_key": "JlW1", "run_key": "PgGMv", "target": ["tests/integration_api"]}
-{"at": "2026-08-31T18:28:42+00:00", "branch": "main", "commit": "c85a35b", "counts": {"failed": 0, "passed": 83, "skipped": 1}, "dur_s": 82.6, "env": "unknown", "exit": 0, "failed": [], "project_key": "JlW1", "run_key": "PgGMv", "target": ["tests"]}

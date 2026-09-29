@@ -5,8 +5,8 @@ it here first.
 
 Read before making changes:
 
-1. `docs/API_SURFACES.md` - both API surfaces, the auth contracts, the
-   environment matrix, and known-good test data.
+1. `docs/API_SURFACES.md` - both API surfaces, the auth contracts, and the
+   test-data rules. The server lives in `config/env/qa.py`.
 2. `docs/writing/ste.md` - the writing rules for all prose: docs, comments,
    docstrings, error messages, commit messages. Use strict mode for error
    messages and log lines, flavored mode for docs. `docs/STYLE.md` is the
@@ -16,7 +16,7 @@ Read before making changes:
 Hard rules:
 
 - This repo is browser-free. Never add playwright or any browser dependency.
-  API login is plain HTTP; if login fails, read the error, it names the fix.
+  API login is plain HTTP. If login fails, read the error. It names the fix.
 - Commit messages state what the change does and why. Nothing else goes in
   them: no signatures, no boilerplate, no trailer lines.
 - Plain ASCII in prose: no em dashes, no curly quotes, no emoji.
@@ -29,8 +29,8 @@ Hard rules:
   `tests/integration_api/conftest.py`. The root `conftest.py` stays
   minimal. `api_clients/` (BaseAPIClient included) is internal-suite
   plumbing: never reuse or edit it for the integration suite.
-- Merges between the two GitHub remotes follow `docs/MERGE_RUNBOOK.md`.
-  Never force-push main.
+- Work on a branch and open a pull request. Never force-push main.
+- Nothing names a server, a site or a camera outside `config/env/`.
 - Never commit `.env` or any credential.
 - Before you edit a file you did not create, read it fully and keep its
   intent. Propose a large rewrite instead of applying it.

@@ -1,7 +1,7 @@
 """Support config for the ported flow tests (endpoint sweep, e2e).
 
-- The host comes from the active ENV (config/env/), so these tests follow
-  ENV=qa|stage|prod like the rest of the suite.
+- The host comes from the active ENV (config/env/<ENV>.py), so these tests
+  point at the same server as the rest of the suite.
 - NO credentials here, on purpose: auth is the shared api_auth_token
   fixture (session login via AuthHelper).
 - Tuning knobs (timeouts, export duration, the media-share recipient) read

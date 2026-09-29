@@ -10,9 +10,10 @@ import urllib3
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-# Determine verification behaviour: disable verification for non-production envs
-_ENV = os.getenv("ENV", "").lower()
-_VERIFY = _ENV in ("prod", "production")
+# TLS verification is off unless SSL_VERIFY=true in .env. The QA server's
+# certificate has not been proven from here, and a failed handshake would
+# read as "could not reach the API". BaseAPIClient reads the same key.
+_VERIFY = os.getenv("SSL_VERIFY", "").lower() in ("true", "1", "yes")
 
 # The web app authenticates against this endpoint. It is NOT the same one as
 # /REST/central/user/auth/login, which requires a `captcha` parameter that only
@@ -20,9 +21,9 @@ _VERIFY = _ENV in ("prod", "production")
 _LOGIN_PATH = "/REST/central/user/login"
 
 # The SPA sends a hardcoded literal here; `accountid` carries the real email.
-# Verified byte-identical in the QA, stage and prod bundles (chunk 6031).
-# If the vendor ever changes it, login breaks -- hence the explicit message in
-# _api_login() rather than a bare "invalid credentials".
+# Read from the app's JS bundle (chunk 6031), the same build on every server
+# seen so far. If the vendor ever changes it, login breaks -- hence the
+# explicit message in _api_login() rather than a bare "invalid credentials".
 _LOGIN_USERNAME_LITERAL = "Example Label"
 
 
@@ -36,12 +37,15 @@ class AuthHelper:
         self.base_url = b
         self._token: str | None = None
         self._token_expiry: float = 0.0
-        # Session cache settings
+        # Session cache settings. The cache is keyed on the server AND the
+        # account (see _load_cached_token): keyed on the server alone, a
+        # changed QA_USER would reuse the previous account's session for up
+        # to CACHE_MAX_AGE_HOURS and the wrong account would run the suite.
         self.CACHE_FILE = ".session_cache"
         self.CACHE_MAX_AGE_HOURS = 8
 
-    def _load_cached_token(self) -> str | None:
-        """Load token from cache if valid"""
+    def _load_cached_token(self, email: str) -> str | None:
+        """Load token from cache if valid for this server and this account."""
         import json as _json
 
         print("[AUTH CACHE] Checking for cached token...")
@@ -67,12 +71,19 @@ class AuthHelper:
 
             token = cache.get("token")
             base_url = cache.get("base_url")
+            cached_email = cache.get("email")
 
             print(f"[AUTH CACHE] Base URL match: {base_url} == {self.base_url}")
 
             # Ensure cached token is for the same base_url
             if base_url and base_url != self.base_url:
                 print(f"[AUTH] Cache entry base_url mismatch: {base_url} != {self.base_url}")
+                return None
+
+            # Ensure cached token is for the same account. A cache written
+            # without an email (an older layout) is a miss, never a hit.
+            if cached_email != email:
+                print(f"[AUTH] Cache entry account mismatch: {cached_email} != {email}")
                 return None
 
             # Quick validation
@@ -91,11 +102,12 @@ class AuthHelper:
             print(f"[AUTH] Cache read error: {e}")
             return None
 
-    def _save_token_to_cache(self, token: str) -> None:
+    def _save_token_to_cache(self, token: str, email: str) -> None:
         """Save token to cache"""
         import json as _json
 
-        cache = {"token": token, "base_url": self.base_url, "timestamp": time.time()}
+        cache = {"token": token, "base_url": self.base_url, "email": email,
+                 "timestamp": time.time()}
         try:
             with open(self.CACHE_FILE, "w", encoding="utf-8") as f:
                 _json.dump(cache, f)
@@ -112,6 +124,7 @@ class AuthHelper:
             return r.status_code == 200
         except requests.RequestException:
             return False
+
     def _api_login(self, email: str, password: str) -> str:
         """Authenticate over HTTP and return the JSESSIONID. No browser involved.
 
@@ -134,17 +147,17 @@ class AuthHelper:
             r = requests.post(url, json=payload, timeout=20, verify=_VERIFY)
         except requests.RequestException as e:
             raise RuntimeError(
-                f"Could not reach the API at {url}. Check base_url / network / VPN. "
-                f"({type(e).__name__}: {e})"
+                f"Could not reach the API at {url}. Check base_url in config/env/, "
+                f"the network and the VPN. ({type(e).__name__}: {e})"
             ) from e
 
         # The server distinguishes 'no such user' from 'wrong password', and the
-        # difference tells you whether the credential or the environment is wrong.
+        # difference tells you whether the credential or the server is wrong.
         if r.status_code == 404:
             raise RuntimeError(
-                f"No account '{email}' exists on {self.base_url}. The credential is "
-                f"probably for a different environment (QA / stage / prod each have "
-                f"their own accounts). Check QA_USER and the ENV/BOX you selected."
+                f"No account '{email}' exists on {self.base_url}. Each server has "
+                f"its own accounts. Check QA_USER in .env and base_url in "
+                f"config/env/ (ENV selects the file)."
             )
         if r.status_code == 400:
             raise RuntimeError(
@@ -183,7 +196,7 @@ class AuthHelper:
         that says whether the account, the password, or the host is wrong.
         """
         # 1) Try cached token first
-        cached = self._load_cached_token()
+        cached = self._load_cached_token(email)
         if cached:
             self._token = cached
             self._token_expiry = time.time() + 1800
@@ -199,7 +212,7 @@ class AuthHelper:
         self._token = token
         self._token_expiry = time.time() + 1800
         try:
-            self._save_token_to_cache(token)
+            self._save_token_to_cache(token, email)
         except Exception:  # noqa: BLE001, S110 - a cache write failure must not fail the login
             pass
         print("[AUTH] API login succeeded")

@@ -1,10 +1,9 @@
 """
 Camera group (location) API contract
 
-The UI suite (Soterix-WebApp-QA, tests/shared/api/fixtures.py, fixture
-api_camera_group) seeds camera groups through these 3 endpoints. A
-contract change here breaks that setup, so these tests pin the exact
-requests and answers. Verified on QA 2026-08-24.
+The UI suite (Soterix-WebApp-QA, fixture api_camera_group) seeds camera
+groups through these 3 endpoints. A contract change here breaks that
+setup, so these tests pin the exact requests and answers.
 
 A camera group in Admin > Sites is a location in the API. The group
 endpoints (addgroup, grouptree, deletegroup) are a different entity the

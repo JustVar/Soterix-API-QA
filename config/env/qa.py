@@ -1,73 +1,40 @@
+"""The QA server. A new server edits this file and .env, nothing else.
+
+Keys a new server needs: base_url, api_base_url, integration_api_base_url,
+test_site_name, test_camera_name. The account comes from QA_USER and
+QA_PASSWORD in .env. A second server is a copy of this file under
+config/env/<name>.py, selected with ENV=<name>.
+"""
 import os
 
 config = {
-    "base_url": "https://qa.example.invalid",
+    "base_url": "https://qa.example.invalid",          # the QA server
     "api_base_url": "https://qa.example.invalid/v-apiserver",
 
     # Third-party surface. Static key auth via VSAAS_INTEGRATION_KEY in .env.
-    # QA is the only environment that has it (stage/prod carry None).
+    # Set None on a server that does not deploy it: the integration suite
+    # then skips instead of failing.
     "integration_api_base_url": "https://qa.example.invalid/v-integration-api",
 
-    # Safety flags
+    # Safety flags. Tests that create data run only when both are True
+    # (fixture data_write_gate), because a test that creates must also
+    # remove.
     "allow_write": True,
     "allow_delete": True,
 
     # Test data. Tests that write data resolve the site by this name
-    # (fixture data_site_id), never by TEST_SITE_ID. On QA the name
-    # "Newtown Action Area" is siteId 16 and "main gate" is channel 97
-    # (verified 2026-08-24). The shared tenant renames things: if a
-    # lookup fails, fix the name here.
+    # (fixture data_site_id) and the camera by name inside that site
+    # (fixture data_channel_id), never by a number. Set these to a site
+    # and a camera the QA_USER account can see. If a lookup fails, the
+    # skip message lists the names the account sees: fix the name here.
     "test_site_name": "Newtown Action Area",
     "test_camera_name": "main gate",
-
-    # Box configurations. Each box names the environment variables that hold
-    # the account to use, so every tester signs in as themselves.
-    "boxes": {
-        "india": {
-            "email_env": "QA_INDIA_USER",
-            "password_env": "QA_INDIA_PASSWORD",
-            "default_site_id": None,
-        },
-        "us": {
-            "email_env": "QA_US_USER",
-            "password_env": "QA_US_PASSWORD",
-            "default_site_id": None,
-        },
-        # Shared Videonetics account used by the team's API flow tests
-        # (PR #1). Password lives in .env.
-        "videonetics": {
-            "email": "person@example.com",
-            "password_env": "QA_VIDEONETICS_PASSWORD",
-            "default_site_id": None,
-        },
-    },
-
-    # Default box if not specified
-    "default_box": "india",
 }
 
-# Helper to get active box config
-def get_box_config(box_name=None):
-    box = box_name or os.environ.get("BOX", config["default_box"])
-    if box not in config["boxes"]:
-        raise KeyError(
-            f"Unknown box '{box}' for this environment. "
-            f"Valid boxes: {sorted(config['boxes'])}")
-    return config["boxes"][box]
 
-# Helper to get credentials for active box
-def get_credentials(box_name=None):
-    """Credentials for a box.
-
-    A box gives either a literal `email` (shared accounts) or an `email_env`
-    naming the variable that holds it (per-tester accounts).
-    """
-    box_config = get_box_config(box_name)
-    email = box_config.get("email") or os.environ.get(
-        box_config.get("email_env", ""), "")
-    password = os.environ.get(box_config["password_env"], "")
+def get_credentials():
+    """The account from .env. Empty strings when the keys are unset."""
     return {
-        "email": email,
-        "password": password,
-        "site_id": box_config["default_site_id"],
+        "email": os.environ.get("QA_USER", ""),
+        "password": os.environ.get("QA_PASSWORD", ""),
     }

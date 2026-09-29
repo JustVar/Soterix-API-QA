@@ -14,7 +14,7 @@ except ModuleNotFoundError as exc:
         raise                    # a dependency of the package is missing
     raise ModuleNotFoundError(
         "soterix-qa-shared is not installed. "
-        "Run: pip install -e ../soterix-qa-shared"
+        "Run: python -m pip install -r requirements.txt"
     ) from None
 
 # Which mapping rows may upload is THIS repo's decision, and it gates on

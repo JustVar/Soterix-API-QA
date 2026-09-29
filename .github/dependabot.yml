@@ -26,9 +26,10 @@ updates:
     commit-message:
       prefix: "deps"
 
-  # The workflow files pin actions by major version (actions/checkout@v4).
-  # A pinned action still moves underneath that tag, so this catches the
-  # major bumps that a tag alone hides.
+  # The workflow file pins each action to a commit SHA with the version in
+  # the comment beside it. Dependabot reads that comment and moves the pin.
+  # The vendored wheel under vendor/ is outside its reach: a package release
+  # is one commit by hand (see requirements.txt).
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:

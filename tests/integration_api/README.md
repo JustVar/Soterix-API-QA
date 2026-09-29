@@ -5,7 +5,9 @@ authenticated by a static `x-vsaas-key` header. The Swagger UI is the source
 of truth for the endpoint list (it grows over time):
 <https://qa.example.invalid/v-integration-api/swagger-ui/index.html>
 
-Status: **built and passing** (17 tests, verified live 2026-08-27):
+Status: **built** (17 tests). The suite skips all 17 while
+`VSAAS_INTEGRATION_KEY` is empty, so 17 skips mean the key is missing, not
+that the surface passed.
 
 - `test_endpoint_sweep.py`: every documented endpoint, one row each in
   `data/endpoints.py`, checked against its observed response contract
@@ -34,9 +36,9 @@ suites in this repo from breaking each other:
   `integration_session` fixture may be all you ever need.
 - Tests: `tests/integration_api/test_*.py`. Mark them
   `@pytest.mark.integration` (registered in `pytest.ini`).
-- Config: the per-env base URL is already seeded as
-  `integration_api_base_url` in `config/env/*.py`. The key comes from
-  `VSAAS_INTEGRATION_KEY` in `.env` (slot exists in `.env.template`).
+- Config: the base URL is `integration_api_base_url` in
+  `config/env/qa.py`. The key comes from `VSAAS_INTEGRATION_KEY` in `.env`
+  (slot exists in `.env.template`).
 
 With that layout, building this suite touches zero shared files, and the
 internal suite's plumbing cannot break your runs.
@@ -59,7 +61,7 @@ internal suite's plumbing cannot break your runs.
   green on machines without the key. Treat an empty env var as unset.
 - Do not invent a new `ENV` value for this surface (it breaks the shared
   config for everyone). Gate on `env_config.get("integration_api_base_url")`
-  instead. It is `None` outside QA.
+  instead. It is `None` on a server that does not deploy the surface.
 - Run only this suite while building:
   `pytest tests/integration_api --html=reports/integration.html --self-contained-html`.
   A bare `pytest` also runs the internal suite, which needs credentials you
@@ -72,12 +74,11 @@ internal suite's plumbing cannot break your runs.
 
 ## Surface notes
 
-- The surface exists on QA only (stage/prod 404 as of 2026-08-05). The
-  `integration_base_url` fixture handles that.
+- Not every server deploys the surface. The `integration_base_url`
+  fixture skips the suite when `integration_api_base_url` is `None`.
 - Endpoints are read-only GETs today, so tests are safe against any
-  environment that exposes the surface. That claim has an expiry date:
-  NC-20287 (Swagger - Event API) plans endpoints where a partner writes
-  badge events into the platform. Re-check before assuming a new endpoint
-  is safe to hit anywhere.
-- Merging your work back: follow `docs/MERGE_RUNBOOK.md` (one-time clone
-  check, branch and PR flow, no force-push).
+  server that exposes the surface. That claim has an expiry date: the
+  platform plans endpoints where a partner writes badge events into the
+  platform. Re-check before assuming a new endpoint is safe to hit.
+- Merging your work back: branch, pull request, never force-push `main`
+  (`docs/CONVENTIONS.md`).

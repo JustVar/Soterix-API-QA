@@ -41,8 +41,7 @@ def base_url(env_config):
 # ---------------------------------------------------------------------------
 # Report title: name the product under test, not just the repo.
 # The QA Touch project key selects the product (QATOUCH_PROJECT_ID in .env;
-# NexaiQ-Core when unset). Keys and names follow docs/QA_TOUCH_INTEGRATION.md
-# in the WebApp QA repo.
+# NexaiQ-Core when unset). The keys are the QA Touch project keys.
 # ---------------------------------------------------------------------------
 PRODUCTS = {
     "JlW1": "NexaiQ-Core",

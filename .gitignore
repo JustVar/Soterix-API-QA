@@ -24,3 +24,6 @@ __pycache__/
 
 # Maintainer-local working notes (not part of the shared repo)
 docs/local/
+
+# The per-run ledger the reporter writes when a run is armed. Local to the machine.
+history/

@@ -1,9 +1,18 @@
 # Internal API tests (/v-apiserver)
 
 ## Overview
-This folder holds the internal-API suite: smoke-depth tests (marked `@pytest.mark.smoke`) that quickly validate core platform functionality across environments. The suite currently collects 54 tests (39 live smoke tests, the key lifecycle test, and 14 offline exchange-log unit tests) covering auth, user/session, admin, dashboard, camera, camera groups (locations), bookmarks, events, search, and API-integration key management endpoints. Suite fixtures live in `conftest.py` in this folder.
 
-`test_api_integration_key_apis.py` walks the API Integration key lifecycle (create, disable, enable, delete) with a throwaway key and verifies each state change against the third-party `/v-integration-api` surface. It writes, so it is gated by the env `allow_write`/`allow_delete` flags.
+This folder holds the internal-API suite: smoke-depth tests (marked
+`@pytest.mark.smoke`) of the endpoints the web app uses, a GET sweep over
+every read-only endpoint in `data/endpoints.py`, 2 end-to-end flows (clip
+export, media), and offline unit tests of the HTTP exchange log and the
+session cache. `pytest --collect-only tests/internal_api` prints the
+count. Suite fixtures live in `conftest.py` in this folder.
+
+`test_api_integration_key_apis.py` walks the API Integration key lifecycle
+(create, disable, enable, delete) with a throwaway key and verifies each
+state change against the third-party `/v-integration-api` surface. It
+writes, so the env `allow_write` and `allow_delete` flags gate it.
 
 `test_location_apis.py` and `test_bookmark_apis.py` are contract tests: the
 UI suite (Soterix-WebApp-QA) seeds its test data through those endpoints,
@@ -15,44 +24,40 @@ Directories in this repo name the API surface. Markers name the test depth.
 Deeper internal-API tests (regression, security) belong here too, under
 their own markers, not in a new top-level directory.
 
-Scope:
-- Lightweight smoke checks (status codes, basic response shape)
-- Dynamic discovery of site and enterprise IDs via fixtures
-- Tests intended to be fast and safe to run against test/QA environments
-
-## Core tests (the original 16, later files follow the same pattern)
-1. `test_get_user_session` - GET current user session; validate session response structure via `user_api.validate_session_response()`.
-2. `test_get_user_roles` - GET user roles; assert response type (list/dict).
-3. `test_get_enterprise_id_dynamic` - Validate dynamic enterprise ID derived from site status (fixture `test_enterprise_id`).
-4. `test_get_roles_by_enterprise` - GET roles for dynamically discovered enterprise via `/REST/central/role/{enterpriseId}`; validate code/result and role fields.
-5. `test_auto_discover_site_and_enterprise` - Ensure `discovered_site`, `discovered_site_id`, and `discovered_enterprise_id` fixtures return valid values.
-
-6. `test_get_site_status` (platform) - GET `/REST/dashboard/site/{siteId}/status`; validate JSON response and presence of siteId.
-7. `test_get_camera_tree` (platform) - GET `/REST/site/{siteId}/location/tree`; validate structure contains locations/devices.
-8. `test_get_camera_snap` (platform) - GET `/REST/site/{siteId}/channel/{channelId}/snap`; accept binary image or JSON; validate JPEG/PNG magic bytes for images.
-9. `test_get_widgets` (platform) - GET `/REST/dashboard/sharedwidgets/{customerId}/data`; validate result shape.
-10. `test_search_person` (platform) - POST `/REST/site/search` with PERSON category payload for last hour; validate results structure.
-
-11. `test_search_person_basic` - Search API helper for PERSON; basic type assertion for response.
-12. `test_search_vehicle_basic` - Search API helper for VEHICLE; basic type assertion for response.
-
-13. `test_get_site_status` (dashboard_api wrapper) - via `dashboard_api.get_site_status(test_site_id)` and `dashboard_api.validate_status_response()`.
-14. `test_get_shared_widgets` (dashboard_api wrapper) - via `dashboard_api.get_shared_widgets(1)`; validate response shape.
-
-15. `test_get_camera_tree` (camera_api wrapper) - `camera_api.get_camera_tree(test_site_id)` and validate via `camera_api.validate_camera_tree()`.
-16. `test_get_camera_snapshot` (camera_api wrapper) - Discover a channel id and call `/REST/site/{siteId}/channel/{channelId}/snap`; validate response includes JPEG signature and expected content array.
-
 ## How to run
-From repository root:
 
-```bash
-# Run the internal-API suite
-pytest tests/internal_api/ -v
+From the repository root, with `QA_USER` and `QA_PASSWORD` in `.env`:
+
+```powershell
+venv\Scripts\python.exe -m pytest tests\internal_api
 ```
 
-Target a specific environment by setting env variables or using the project's env config, e.g.: `ENV=qa BASE_URL=https://qa.example.invalid pytest tests/internal_api/ -v`.
+The server is `api_base_url` in `config/env/qa.py`. There is no host
+variable in `.env`.
 
-## API endpoints covered (examples)
+## Fixtures
+
+- `login_data` - `QA_USER` and `QA_PASSWORD` from `.env`
+- `api_base_url` - the API host from the active env file
+- `api_auth_token` / `api_auth_helper` - the session cookie, signed in
+  once per run and cached in `.session_cache` for the same server and
+  account
+- `user_api`, `dashboard_api`, `camera_api`, `search_api`, `location_api`,
+  `bookmark_api` - API client wrappers
+- `discovered_site`, `discovered_site_id`, `discovered_enterprise_id`,
+  `test_site_id`, `test_channel_ids` - discovery fixtures that pick valid
+  site and channel ids for read-only tests. `TEST_SITE_ID` in `.env` pins
+  the site.
+- `data_site`, `data_site_id`, `data_channel_id` - the site and camera that
+  `test_site_name` and `test_camera_name` in `config/env/` name, resolved
+  by name. Tests that write data use these, never `TEST_SITE_ID`.
+- `data_write_gate` - skips a writing test unless the env allows both
+  writes and deletes (`allow_write`, `allow_delete` in `config/env/`)
+- `authed_session`, `discovery_context`, `recorded_clip_window` - the raw
+  session and the real ids the sweep and the e2e flows use
+
+## Endpoints covered (examples)
+
 - `/REST/central/user/login` and `/REST/central/user/session` (login contract, session)
 - `/REST/central/role/{enterpriseId}` (roles)
 - `/REST/dashboard/site/{siteId}/status` (site status)
@@ -63,17 +68,13 @@ Target a specific environment by setting env variables or using the project's en
 - `/REST/dashboard/sharedwidgets/{customerId}/data` (widgets)
 - `/REST/site/search` (search)
 
-The full list with request and response shapes is `docs/INTERNAL_API_INVENTORY.md`.
+The full list with request and response shapes is
+`docs/INTERNAL_API_INVENTORY.md`.
 
-## Fixtures used
-- `api_base_url` - resolved API base URL for the active environment
-- `api_auth_token` / `api_auth_helper` - provides auth token or helper for requests
-- `user_api`, `dashboard_api`, `camera_api`, `search_api`, `location_api`, `bookmark_api` - API client wrappers used by tests
-- `discovered_site`, `discovered_site_id`, `discovered_enterprise_id`, `test_site_id`, `test_channel_ids` - auto-discovery fixtures to pick valid site/channel ids for read-only tests
-- `data_site`, `data_site_id`, `data_channel_id` - the site and camera that `test_site_name` / `test_camera_name` in `config/env/` name, resolved by name. Tests that write data use these, never `TEST_SITE_ID`.
-- `data_write_gate` - skips a writing test unless the env allows both writes and deletes (`allow_write`, `allow_delete` in `config/env/`)
+## The sweep's skip list
 
-## Notes & Recommendations
-- Some tests accept multiple valid shapes (JSON or binary) - assertions aim to be permissive to reduce false negatives.
-- Consider centralizing magic values (e.g., default channel id `1`) into fixtures or config for clarity.
-
+`data/endpoints.py` holds `KNOWN_LIMITATIONS`, a dict of endpoint name to
+reason. The sweep skips those endpoints with that reason. Every reason was
+measured on the previous QA server. On a new server, delete a row, run the
+sweep, and keep the row only if the endpoint still fails for the stated
+reason. A skip is not a pass.

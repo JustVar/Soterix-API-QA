@@ -3,6 +3,9 @@
 # No rules are selected here, so ruff's defaults apply. Only the
 # exceptions below are local to this repo.
 
+# The vendored wheel is a zip. Ruff has nothing to read there.
+extend-exclude = ["vendor"]
+
 [lint.per-file-ignores]
 # CLI tools report every failure to the operator and keep going.
 "tools/**/*.py" = ["BLE001"]

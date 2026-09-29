@@ -55,7 +55,7 @@ before you change a pinned assertion.
 
 | Method and path | What it does | Request | Response and status | Verified on QA | Used by | Notes |
 |---|---|---|---|---|---|---|
-| `GET /REST/site` | Sites the account can see | none | 200, status 2000, result `[{siteId, name, enterpriseId, address, ...}]` | 2026-08-24 | `discovery_helper.py`, `test_location_apis.py`, WebApp QA fixture `api` | On QA the account sees 8 sites. 16 is "Newtown Action Area" (the UI suite's site). 17 is "Example Corporate Office". |
+| `GET /REST/site` | Sites the account can see | none | 200, status 2000, result `[{siteId, name, enterpriseId, address, ...}]` | 2026-08-24 | `discovery_helper.py`, `test_location_apis.py`, WebApp QA fixture `api` | The site the writing tests use is `test_site_name` in `config/env/qa.py`, resolved by name from this list. |
 | `GET /REST/site/user/{email}` | Sites assigned to a user | none | 200, result with the same site shape | 2026-08-24 | `site_discovery.py` (fixtures `discovered_site`, `data_site`), `site_helper.py`, `test_admin_users_apis.py` | |
 | `GET /REST/site/{siteId}` | One site | none | 200, result `[{... enterpriseId}]` | unverified | `search_api.py` (inside a try/except, to read `enterpriseId`) | A failure there is silent. |
 | `GET /REST/site/{siteId}/getsitedetails` | Site detail | none | 200, result present | 2026-08-24 | `test_admin_sites_apis.py` | |

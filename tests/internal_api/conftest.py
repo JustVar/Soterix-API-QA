@@ -1,8 +1,8 @@
 # conftest.py -- internal /v-apiserver suite.
 #
-# Every fixture that needs internal credentials (QA_USER/QA_PASSWORD or a
-# BOX account) lives here, not in the root conftest, so other suites never
-# see it and a broken internal import cannot stop their collection.
+# Every fixture that needs internal credentials (QA_USER/QA_PASSWORD) lives
+# here, not in the root conftest, so other suites never see it and a broken
+# internal import cannot stop their collection.
 import html
 import logging
 import os
@@ -22,41 +22,21 @@ from api_clients import site_helper
 from config.base_config import (
     config as _config,  # noqa: F401 (resolves ENV early, with a clear error)
 )
-from config.base_config import is_delete_allowed, is_write_allowed
+from config.base_config import get_credentials, is_delete_allowed, is_write_allowed
 
 _log = logging.getLogger("env_config")
 
 
 @pytest.fixture(scope="session")
 def login_data():
-    """Active account credentials.
-
-    Two sources, checked in this order:
-    1. If the BOX env var is set, use that box's account from config/env/
-       (for example BOX=india on ENV=qa). The box names the password variable
-       to read from .env.
-    2. Otherwise read QA_USER and QA_PASSWORD from .env. This is the default.
-    """
-    box = os.environ.get("BOX")
-    if box:
-        from config.base_config import get_credentials
-        creds = get_credentials()
-        if not creds.get("email") or not creds.get("password"):
-            raise ValueError(
-                f"BOX='{box}' is set but its credentials are incomplete. The "
-                f"box's password variable is empty or missing in .env. See the "
-                f"password_env key for this box in config/env/.")
-        _log.info(f"[CREDENTIALS] Using box '{box}' account from env config")
-        return {"username": creds["email"], "password": creds["password"]}
-
-    user = os.environ.get("QA_USER")
-    password = os.environ.get("QA_PASSWORD")
-    if not user or not password:
+    """The account the suite signs in as: QA_USER and QA_PASSWORD from .env."""
+    creds = get_credentials()
+    if not creds["email"] or not creds["password"]:
         raise ValueError(
             "QA_USER and QA_PASSWORD must be set in environment or .env file. "
             "See .env.template")
     _log.info("[CREDENTIALS] Using QA_USER from environment")
-    return {"username": user, "password": password}
+    return {"username": creds["email"], "password": creds["password"]}
 
 
 @pytest.fixture(scope="session")
@@ -201,10 +181,9 @@ def test_channel_ids(discovery_helper, test_site_id):
 
 # --------------------------------------------------------------------------
 # Test data fixtures. Tests that write data (locations, bookmarks) resolve
-# their site by NAME, never by TEST_SITE_ID. A number is easy to get wrong:
-# on QA, TEST_SITE_ID=17 is "Example Corporate Office" while the UI
-# suite works on "Newtown Action Area" (siteId 16). See docs/API_SURFACES.md,
-# "Test data".
+# their site by NAME (test_site_name in config/env/), never by TEST_SITE_ID.
+# A number is easy to get wrong: two sites with similar names once carried
+# the wrong id in both repos. See docs/API_SURFACES.md, "Test data".
 # --------------------------------------------------------------------------
 
 @pytest.fixture(scope="session")
@@ -262,7 +241,8 @@ def data_write_gate(env_config):
     """Skip unless the env allows writes AND deletes (config/env/ allow_write, allow_delete).
 
     A test that creates data must also remove it, so both flags are
-    needed. QA allows both, stage allows no deletes, prod allows neither.
+    needed. Set both False in config/env/ for a server that must stay
+    untouched.
     """
     write, delete = is_write_allowed(), is_delete_allowed()
     if not (write and delete):
@@ -337,11 +317,11 @@ def discovery_context(authed_session, api_base_url, test_site_id,
     """Real ids for the sweep's path templates, from the shared fixtures.
 
     siteid comes from test_site_id, the SAME fixture test_channel_ids reads,
-    not from the login's default site. Measured on the first live run: the
-    default site was 16, whose backend answered 502 on every endpoint, while
-    the channels came from test_site_id 17 - so 28 sweep tests failed on a
-    dead site and 2 more asked site 16 about a channel that lives on 17.
-    One site id source means the ids can never disagree.
+    not from the login's default site. Two sources once disagreed on a live
+    run: the default site's backend answered 502 on every endpoint while the
+    channels came from another site, so 28 sweep tests failed on a dead site
+    and 2 more asked one site about a channel that lives on another. One
+    site id source means the ids can never disagree.
 
     userid/profileid are read from the session and roles. A placeholder that
     cannot be resolved leaves its key None, and the sweep skips endpoints

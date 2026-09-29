@@ -1,60 +1,45 @@
 #!/usr/bin/env python3
-"""Download OpenAPI specs (QA and Prod), validate, and summarize.
+"""Download the internal API's OpenAPI spec from the configured server.
 
-Saves to:
- - schemas/openapi_spec_qa.json
- - schemas/openapi_spec_prod.json
+The host comes from config/env/<ENV>.py (api_base_url), so a server change
+is one edit. The spec lands in schemas/openapi_spec_<ENV>.json. When the
+optional package openapi-spec-validator is installed, the file is validated
+too. A summary (endpoint and schema counts, auth methods, tags) prints last.
 
-Requires: requests, openapi-spec-validator
+Usage:
+    python tools/download_openapi_spec.py            # ENV from .env, default qa
+    ENV=other python tools/download_openapi_spec.py  # config/env/other.py
+
+The vendor's spec lags the deployed API. docs/INTERNAL_API_INVENTORY.md
+holds the shapes measured on the server and is the reference for tests.
 """
 import json
 import os
 import sys
 from pathlib import Path
 
-QA_URL = "https://qa.example.invalid/v-apiserver/v3/api-docs"
-PROD_URL = "https://app.example.invalid/v-apiserver/v3/api-docs"
+import requests
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+
 # schemas/ at the repo root is where the committed specs live
 OUT_DIR = ROOT / "schemas"
-OUT_DIR.mkdir(parents=True, exist_ok=True)
 
 
-def install_deps():
-    try:
-        import requests  # noqa: F401
-        from openapi_spec_validator import validate_spec  # noqa: F401
-    except Exception:
-        print("Installing required packages: requests openapi-spec-validator jsonschema")
-        os.system(f"{sys.executable} -m pip install requests openapi-spec-validator jsonschema")
-
-
-def download(url: str, out_path: Path) -> bool:
-    import requests
-
+def download(url: str, out_path: Path, verify: bool) -> bool:
     print(f"Downloading {url} -> {out_path}")
     try:
-        r = requests.get(url, timeout=30)
+        r = requests.get(url, timeout=30, verify=verify)
         r.raise_for_status()
         data = r.json()
-        with open(out_path, "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=2)
-        return True
     except Exception as e:
-        # Try insecure (no cert verify) as a fallback for internal/self-signed certs
-        print(f"Primary download failed ({e}), retrying with certificate verification disabled...")
-        try:
-            r = requests.get(url, timeout=30, verify=False)
-            r.raise_for_status()
-            data = r.json()
-            with open(out_path, "w", encoding="utf-8") as f:
-                json.dump(data, f, indent=2)
-            print("Downloaded with verify=False (insecure).")
-            return True
-        except Exception as e2:
-            print(f"Failed to download {url} even with verify=False: {e2}")
-            return False
+        print(f"Download failed: {e}")
+        return False
+    OUT_DIR.mkdir(parents=True, exist_ok=True)
+    with open(out_path, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2)
+    return True
 
 
 def summarize(spec: dict) -> dict:
@@ -73,9 +58,15 @@ def summarize(spec: dict) -> dict:
     }
 
 
-def validate_spec_file(path: Path) -> bool:
+def validate_spec_file(path: Path) -> bool | None:
+    """True or False from the validator, None when it is not installed."""
     try:
         from openapi_spec_validator import validate_spec
+    except ImportError:
+        print("openapi-spec-validator is not installed, so the spec is not validated. "
+              "Install it to validate: pip install openapi-spec-validator")
+        return None
+    try:
         with open(path, encoding="utf-8") as f:
             spec = json.load(f)
         validate_spec(spec)
@@ -86,32 +77,22 @@ def validate_spec_file(path: Path) -> bool:
 
 
 def main():
-    install_deps()
-    qa_path = OUT_DIR / "openapi_spec_qa.json"
-    prod_path = OUT_DIR / "openapi_spec_prod.json"
+    from config.base_config import config
 
-    qa_ok = download(QA_URL, qa_path)
-    prod_ok = download(PROD_URL, prod_path)
+    env = (os.environ.get("ENV") or "qa").strip().lower()
+    api_base_url = config.get("api_base_url", config["base_url"]).rstrip("/")
+    url = f"{api_base_url}/v3/api-docs"
+    out_path = OUT_DIR / f"openapi_spec_{env}.json"
+    # Same TLS rule as the clients: verify only when SSL_VERIFY=true.
+    verify = os.getenv("SSL_VERIFY", "").lower() in ("true", "1", "yes")
 
-    results = {}
-    if qa_ok:
-        try:
-            spec = json.loads(qa_path.read_text(encoding="utf-8"))
-            valid = validate_spec_file(qa_path)
-            results['qa'] = summarize(spec)
-            results['qa']['valid'] = valid
-        except Exception as e:
-            print(f"Error processing QA spec: {e}")
-    if prod_ok:
-        try:
-            spec = json.loads(prod_path.read_text(encoding="utf-8"))
-            valid = validate_spec_file(prod_path)
-            results['prod'] = summarize(spec)
-            results['prod']['valid'] = valid
-        except Exception as e:
-            print(f"Error processing Prod spec: {e}")
+    if not download(url, out_path, verify):
+        sys.exit(1)
 
-    print(json.dumps(results, indent=2))
+    spec = json.loads(out_path.read_text(encoding="utf-8"))
+    result = summarize(spec)
+    result["valid"] = validate_spec_file(out_path)
+    print(json.dumps({env: result}, indent=2))
 
 
 if __name__ == '__main__':

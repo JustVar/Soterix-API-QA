@@ -1,194 +1,188 @@
 # Soterix API - QA
 
-## What this repo does
-
-This repo tests the APIs of the Soterix VSaaS platform with HTTP requests.
-It uses no browser. A test sends a request, then checks the status, the
-shape and the content of the answer.
+This repo tests the APIs of the Soterix VSaaS platform with HTTP requests
+against one QA server. It uses no browser. A test sends a request, then
+checks the status, the shape and the content of the answer.
 
 ## How it works
 
 1. The tests are Python. pytest runs them, and the `requests` library sends
-   the calls. A full run installs in seconds.
-2. The platform has 2 API surfaces, and each one has its own suite, its own
-   login and its own credentials in `.env`. One suite can break and the
+   the calls.
+2. The platform has 2 API surfaces. Each one has its own suite, its own
+   login and its own credential in `.env`. One suite can break and the
    other still runs.
 3. The internal suite signs in one time for each run and keeps the session
    cookie. The clients in `api_clients/` hold the endpoints, so a change in
    the API is corrected in 1 place.
-4. Each run keeps its evidence and its report page the same way as the
-   WebApp repo. The shared package `soterix-qa-shared` supplies that code.
+4. Each run writes its evidence and its report page under `reports/runs/`
+   on the machine that ran it. The shared package `soterix-qa-shared`
+   supplies that code. It installs from the wheel under `vendor/`.
 5. The upload of results to QA Touch is optional and off by default.
 
 ## The 2 suites
 
-| Suite | Surface | Auth | Credentials |
+| Suite | Surface | Auth | Credential in `.env` |
 |---|---|---|---|
 | `tests/internal_api/` | internal `/v-apiserver` (everything the web app does) | session cookie | `QA_USER` / `QA_PASSWORD` |
 | `tests/integration_api/` | third-party `/v-integration-api` (partner API) | static `x-vsaas-key` header | `VSAAS_INTEGRATION_KEY` |
 
-One naming trap, worth stating once: **"Integration API" names the partner
-product surface** (`/v-integration-api`), not the test level. End-to-end
-tests of internal endpoints are internal-suite work and live in
-`tests/internal_api/`, whatever their depth. When someone says "integration
+"Integration API" names the partner product surface (`/v-integration-api`),
+not the test level. End-to-end tests of internal endpoints are internal-suite
+work and live in `tests/internal_api/`. When someone says "integration
 tests", ask which of the two they mean.
 
-Full contracts, environments, and known-good test data: **`docs/API_SURFACES.md`**.
+The auth contracts and the test-data rules: `docs/API_SURFACES.md`.
 Every internal endpoint found or tested, with request and response shapes:
-**`docs/INTERNAL_API_INVENTORY.md`**.
-To build out the integration suite, start at **`tests/integration_api/README.md`**.
-It says where code goes and what not to reuse.
+`docs/INTERNAL_API_INVENTORY.md`.
+To extend the integration suite, start at `tests/integration_api/README.md`.
 
-UI automation and manual test cases live in the sibling repo
-**Soterix-WebApp-QA**. The two repos share nothing at run time. This repo is
-deliberately **browser-free**: no Playwright, no captcha, no UI login. A full
-run installs in seconds and launches no browser.
+UI automation lives in the sibling repo Soterix-WebApp-QA. The two repos
+share nothing at run time. This repo stays browser-free: no Playwright, no
+captcha, no UI login.
 
-## Quickstart
+## Setup
+
+Python 3.14. Four commands:
 
 ```powershell
+git clone https://github.com/Soterix-Systems/Soterix-API-QA.git C:\qa\api-qa
+cd C:\qa\api-qa
 python -m venv venv
-venv\Scripts\pip install -r requirements.txt
-copy .env.template .env      # then fill in credentials
+venv\Scripts\python.exe -m pip install -r requirements.txt
+copy .env.template .env
 ```
 
-That is the whole setup. `requirements.txt` pulls in the shared QA pipeline
-(`soterix-qa-shared`) for you, over HTTPS, using the same GitHub login your
-`git clone` used. You need read access to that repo, which is granted
-separately from this one: if pip reports a 404, ask for it rather than
-hunting for a token. `plugins/` and `tools/` here are thin shims over that
-package, so nothing collects without it.
+`pip install` takes about 1 minute and asks for no credential. The shared
+package comes from `vendor/`, so no other repository access is needed.
 
-**Only if you need to change the shared package**, clone it beside this repo
-and install it editable. That overrides the pinned copy until you reinstall:
+Then fill 2 lines in `.env`:
+
+```
+QA_USER=        the account the tests sign in as
+QA_PASSWORD=
+```
+
+Leave every other line as it is.
+
+The server and the test data live in one file, `config/env/qa.py`:
+`base_url`, `api_base_url`, `integration_api_base_url`, `test_site_name`
+and `test_camera_name`. If the server is not the one in that file, edit
+those keys. The file's header lists them. To find a site and a camera the
+account can see, run `venv\Scripts\python.exe tools\discover_cameras.py`.
+
+## The first run
+
+One test, under 10 seconds:
 
 ```powershell
-cd ..
-git clone https://github.com/Soterix-Systems/SOTERIX-QA-SHARED.git soterix-qa-shared
-cd Soterix-API-QA
-venv\Scripts\pip install -e ..\soterix-qa-shared
+venv\Scripts\python.exe -m pytest tests\internal_api\test_auth_apis.py::test_login_contract_returns_a_session
 ```
 
-Most people never need this.
+The last line prints `1 passed`. The run's page is
+`reports\runs\<run>\run.html`, and `reports\runs\index.html` lists every
+run on this machine. Open the run page. A failed test shows its error and
+the HTTP exchanges that led to it. A skipped test shows its reason.
+"skipped" is not "passed".
 
-Run the suite you are working on, not the whole tree. The two suites need
-different credentials, and a bare `pytest` errors on whichever one you lack:
-
-```powershell
-# Internal /v-apiserver suite (needs QA_USER/QA_PASSWORD)
-venv\Scripts\pytest tests\internal_api --html=reports/internal.html --self-contained-html
-
-# Third-party /v-integration-api suite (needs VSAAS_INTEGRATION_KEY, skips without it)
-venv\Scripts\pytest tests\integration_api --html=reports/integration.html --self-contained-html
-
-# Reporter plugin unit tests (offline, no credentials)
-venv\Scripts\pytest tests\plugins
-```
-
-Before pushing, prove you broke no other suite's wiring. These checks need
-no credentials, and CI runs the same ones via
-`.github/workflows/collect-gate.yml`:
-
-```powershell
-venv\Scripts\pytest --collect-only
-venv\Scripts\pytest --setup-plan
-```
-
-If internal-suite login fails, **read the error**. It says which of the
-three things is wrong:
+If login fails, read the error. It says which of 3 things is wrong:
 
 | Error | Meaning | Fix |
 |---|---|---|
-| "No account ... exists on ..." | credential belongs to a different environment | check `QA_USER` / `ENV` |
-| "... exists but the password was rejected" | stored password is stale | refresh it in `.env` |
-| "Could not reach the API at ..." | wrong host / no network | check `config/env/`, VPN |
+| "No account ... exists on ..." | the account is not on this server | check `QA_USER` in `.env` and `base_url` in `config/env/qa.py` |
+| "... exists but the password was rejected" | the stored password is stale | refresh it in `.env` |
+| "Could not reach the API at ..." | wrong host or no network | check `base_url`, the VPN |
+
+Then the suites:
+
+```powershell
+# Internal /v-apiserver suite (needs QA_USER/QA_PASSWORD)
+venv\Scripts\python.exe -m pytest tests\internal_api
+
+# Third-party /v-integration-api suite (needs VSAAS_INTEGRATION_KEY)
+venv\Scripts\python.exe -m pytest tests\integration_api
+
+# Offline checks (no credentials)
+venv\Scripts\python.exe -m pytest tests\plugins
+```
+
+Run the suite you work on, not the whole tree. A bare `pytest` runs both
+suites and errors on the credential you lack. The integration suite skips
+all 17 tests while `VSAAS_INTEGRATION_KEY` is empty: 17 skips there mean
+the key is missing, not that the surface passed.
+
+The endpoint sweep in `tests/internal_api/test_get_endpoints_sweep.py` skips
+the endpoints listed in `tests/internal_api/data/endpoints.py`
+(`KNOWN_LIMITATIONS`). Every reason there was measured on the previous QA
+server. On a new server, delete a row, run the sweep, and keep the row only
+if the endpoint still fails for the stated reason.
+
+## TLS
+
+The clients do not verify the server certificate unless `SSL_VERIFY=true`
+is in `.env`. The QA server's certificate has not been proven from a
+clean machine. Set it to true on a server with a certificate a public CA
+signed, and a failed handshake then reads as "Could not reach the API".
+
+## Before you push: the collect gate
+
+CI runs `.github/workflows/collect-gate.yml` on every push and pull
+request, on GitHub's machines, with no secret. It proves the wiring, not
+the surface:
+
+1. `pytest --collect-only` and `pytest --setup-plan`: every import and
+   fixture resolves. No test runs.
+2. `python tools/collect_floor.py`: the collected count per suite did not
+   drop below `config/collect_floor.json`. If you removed tests on
+   purpose, run `python tools/collect_floor.py --update` and say why in
+   the commit message.
+3. `pytest tests/plugins`: the shim guards and the shared-package pin.
+4. `pytest tests/integration_api`: self-skipping without the key.
+5. `python -m ruff check .`
+
+Run the same commands with `venv\Scripts\python.exe -m` before you push.
+Work on a branch and open a pull request. Never force-push `main`.
 
 ## Layout
 
 ```
-.github/workflows/  collect-gate CI: imports + fixture wiring on every push/PR
+.github/workflows/  collect-gate CI (imports, fixture wiring, floor, lint)
 api_clients/        internal-suite HTTP clients (auth, cameras, locations, bookmarks, dashboard, search, users)
-config/             env configs (qa/stage/prod) + QA Touch case mapping
-docs/               API_SURFACES.md (start here), INTERNAL_API_INVENTORY.md, endpoint catalog, MERGE_RUNBOOK.md
-plugins/            QA Touch result reporter (dormant unless --qatouch-upload)
-schemas/            OpenAPI snapshots + response schemas used for validation
+config/             config/env/qa.py (the server), the collect floor, the QA Touch case mapping
+docs/               API_SURFACES.md (start here), INTERNAL_API_INVENTORY.md, endpoint catalog, ARCHIVE.md
+plugins/            shims over the shared package: run archive, QA Touch reporter
+schemas/            OpenAPI snapshot + response schemas used for validation
 tests/internal_api/     internal-API suite (fixtures in its conftest.py)
-tests/integration_api/  integration-API suite (17 tests; key auth, endpoint sweep)
-tests/plugins/      unit tests for the reporter plugin
-tools/              discovery + QA Touch client utilities
+tests/integration_api/  integration-API suite (key auth, endpoint sweep)
+tests/plugins/      offline pins: shim guards, shared-package pin
+tools/              discover_cameras.py, download_openapi_spec.py, api_usage.py, collect_floor.py
+vendor/             the shared package wheel that requirements.txt installs
 ```
 
-The isolation rules: each suite keeps its fixtures in its own `conftest.py`.
-The root `conftest.py` carries only what every suite shares (`env_config`,
-`base_url`). `api_clients/` (`BaseAPIClient` included) belongs to the
-internal suite alone. That is what lets either suite break without taking
-the other down.
+Each suite keeps its fixtures in its own `conftest.py`. The root
+`conftest.py` carries only what every suite shares (`env_config`,
+`base_url`). `api_clients/` belongs to the internal suite alone. That is
+what lets either suite break without taking the other down.
 
-## Environments
+A second server is a copy of `config/env/qa.py` under
+`config/env/<name>.py`, selected with `ENV=<name>` in `.env`. Do not add
+config keys anywhere else.
 
-Select with `ENV=qa|stage|prod` (default `qa`). Hosts are defined in
-`config/env/*.py`. Credentials come from `.env`, copied from `.env.template`. The integration surface
-exists on QA only: its base URL is the `integration_api_base_url` key, which
-is `None` on stage/prod so integration tests skip there. Do not invent new
-`ENV` values. Add config keys instead.
+## QA Touch upload (opt-in)
 
-## Contributing Across the Two Remotes
-
-This repo lives in two GitHub orgs (JustVar + Soterix-Systems). All merges
-follow **`docs/MERGE_RUNBOOK.md`**. The two rules everyone must know:
-
-1. **On a fresh clone**, run `git rev-list --max-parents=0 HEAD` first. It must
-   print `92aadd1a9458f3d7fed0efb80f05f046d1142b2f`. Anything else means the
-   clone is on dead pre-cleanup history, and the runbook has the recovery.
-2. **Nobody force-pushes `main`.** Branch protection is unavailable on the
-   current GitHub plan, so this rule is the protection.
-
-Team changes go through a feature branch and a PR on Soterix-Systems.
-
-## QA Touch Reporting (Opt-in)
-
-Results upload only when explicitly armed:
+Results upload only when a run is armed:
 
 ```powershell
-pytest --qatouch-upload --qatouch-run <RUN_KEY> tests\
+venv\Scripts\python.exe -m pytest --qatouch-upload --qatouch-run <RUN_KEY> tests\
 ```
 
-Case mappings live in `config/qatouch_case_mapping.json` (hand-edited),
-**never** in test files.
+It needs `QATOUCH_API_KEY`, `QATOUCH_DOMAIN` and `QATOUCH_PROJECT_ID` in
+`.env`. Case mappings live in `config/qatouch_case_mapping.json`, hand
+edited, never in test files. Only rows marked `reviewed: true` upload.
 
-## After a Run
+## Where the results are
 
-One question, one place. Statuses of record live in the QA Touch run when
-the run was armed. Failure detail lives in the per-suite HTML report
-(`reports/internal.html` / `reports/integration.html`) plus the HTTP
-exchange log each failed test prints. Long-term history lives in
-`history/*.jsonl`, committed. Defects live in Jira, filed by a person.
+Failure detail is in the run page, `reports/runs/<run>/run.html`, with the
+HTTP exchanges each failed test made. `reports/runs/index.html` lists every
+run on this machine. Defects go to Jira, filed by a person.
 
-A manual or debug run uploads nothing and ledgers nothing: run it, read
-the report, iterate, done. Arm a run only when it is an official check.
-
-The team-wide viewing plan (nginx on spartan1 serving run evidence, the
-self-hosted runner beside it, retention) is decided and documented once,
-in the WebApp repo: `Soterix-WebApp-QA/docs/RUN_WORKFLOWS.md`. This repo's
-runs are browser-free, so its evidence is smaller, but it follows the same
-model.
-
-### If spartan1 is down
-
-The merge gate runs on spartan1, which costs no Actions minutes. If the box
-is off, a push has no runner, so the gate waits instead of failing. That
-looks like a hang and is not one.
-
-Send it back to GitHub's machines either way:
-
-- Set the repository variable `CI_RUNNER` to `hosted`. It applies to every
-  event, a push included, and it stays set until somebody removes it.
-- Or start the workflow by hand from the Actions tab with `hosted` ticked. A
-  dispatch input is null on an automatic event, so this one covers a single
-  run.
-
-Remove the variable when the box is back, or every run bills minutes again:
-
-```bash
-gh variable delete CI_RUNNER -R Soterix-Systems/Soterix-API-QA
-```
+What left this repo and how to get it back: `docs/ARCHIVE.md`.

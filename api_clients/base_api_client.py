@@ -19,8 +19,6 @@ from typing import Any
 
 import requests
 import urllib3
-from jsonschema import ValidationError
-from jsonschema import validate as jsonschema_validate
 
 from .tls import ssl_verify
 
@@ -234,24 +232,6 @@ class BaseAPIClient:
 
     def delete(self, path: str) -> requests.Response:
         return self._request("DELETE", path)
-
-    def load_schema(self, schema_name: str) -> dict[str, Any] | None:
-        if not schema_name:
-            return None
-        path = os.path.join(ROOT, "schemas", "responses", f"{schema_name}.json")
-        if not os.path.exists(path):
-            return None
-        with open(path, "r", encoding="utf-8") as f:
-            return json.load(f)
-
-    def validate_schema(self, response_json: Any, schema: dict[str, Any] | None):
-        if not schema:
-            return True
-        try:
-            jsonschema_validate(instance=response_json, schema=schema)
-            return True
-        except ValidationError as e:
-            raise AssertionError(f"Schema validation failed: {e.message}")
 
     def assert_response_time(self, response: requests.Response, max_seconds: float | None = None):
         ms = max_seconds or self.max_seconds

@@ -119,6 +119,28 @@ Status values seen on QA (2026-08-24):
 `test_location_apis.py::test_delete_location_removes_it_and_a_second_delete_answers_1006`
 pins the 1006 shape.
 
+### What the spec says about a response
+
+The spec snapshot (`schemas/openapi_spec_qa.json`) cannot check what an
+endpoint returns. It gives every operation a response schema, but the
+schema is a wrapper with no fields for the data:
+
+- The suites call 138 operations that are in the spec. 127 answer
+  `ResponseVO`, the envelope above, whose `result` is "a list of objects"
+  with no properties. The other 11 answer `VRCSResponse`, an enum of
+  return codes.
+- Across all 1,012 operations in the spec, 7 schemas are ever used as a
+  response: `ResponseVO`, `VRCSResponse`, `StreamingResponseBody` and the 4
+  live and archive start and stop types.
+- The other 220 files in `schemas/responses/` describe request bodies and
+  the types nested inside them. No response points at them.
+
+So a test checks the shape of `result` itself, from the measured shapes in
+`INTERNAL_API_INVENTORY.md`, and the spec is a reference for paths and
+request bodies only. Measured on 10/09/2026 against the snapshot of the QA
+server. The schema loader and validator that the client once carried had
+no caller, and they left on the same date.
+
 ### Contracts the UI suite depends on
 
 Since 2026-08-24 the UI suite (Soterix-WebApp-QA, `tests/shared/api/`)

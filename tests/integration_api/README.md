@@ -48,11 +48,10 @@ internal suite's plumbing cannot break your runs.
 
 - `api_clients/auth_helper.py`: internal `/v-apiserver` login (session
   cookie, expiry). This surface has no session and no login.
-- `api_clients/base_api_client.py`: also internal-only, three ways. It
+- `api_clients/base_api_client.py`: also internal-only, two ways. It
   force-appends `/v-apiserver` to any base URL. Its headers speak only
   JSESSIONID-cookie or Bearer (a hex key passed as `token` would be sent as
-  a session cookie). Its schema validation loads internal-API models from
-  `schemas/responses/`. Do not subclass it and do not edit it to fit.
+  a session cookie). Do not subclass it and do not edit it to fit.
   Every internal test depends on its current behavior.
 
 ## Conventions

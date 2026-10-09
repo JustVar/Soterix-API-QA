@@ -4,7 +4,7 @@
 
 API test automation for the VSaaS platform behind NexaiQ-Core, the web app of
 Soterix Systems, an AI video-surveillance SaaS startup. Built by Justin
-Varughese (QA Lead). The suites started inside the web app repo and moved here
+Varughese (System Platform QA/QC Manager). The suites started inside the web app repo and moved here
 in August 2026. Soterix has since closed. The QA server is gone, so only the
 offline tests can run, and CI, which ran on the company's copies of these
 repos, is switched off here.

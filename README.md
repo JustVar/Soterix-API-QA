@@ -1,5 +1,42 @@
 # Soterix API - QA
 
+## About this repo
+
+API test automation for the VSaaS platform behind NexaiQ-Core, the web app of
+Soterix Systems, an AI video-surveillance SaaS startup. Built by Justin
+Varughese (QA Lead). The suites started inside the web app repo and moved here
+in August 2026. Soterix has since closed. The QA server is gone, so only the
+offline tests can run, and CI, which ran on the company's copies of these
+repos, is switched off here.
+
+- 55 functional tests of the internal API, a sweep of 101 read endpoints and
+  17 tests of the partner API.
+- 83 internal endpoints documented from the live system, each with the date
+  it was last confirmed
+  ([docs/INTERNAL_API_INVENTORY.md](docs/INTERNAL_API_INVENTORY.md)).
+- Where to start:
+  - The login triage ([api_clients/auth_helper.py](api_clients/auth_helper.py)),
+    which tells an unknown account, a stale password and an unreachable server
+    apart and names the fix.
+  - The skip list ([tests/internal_api/data/endpoints.py](tests/internal_api/data/endpoints.py)),
+    where every endpoint the sweep skips says where and when the failure was
+    measured.
+  - The HTTP exchange log
+    ([api_clients/base_api_client.py](api_clients/base_api_client.py)), which
+    attaches the masked requests and answers to every failed test.
+- Built with AI coding agents (Claude Code, OpenAI Codex, Microsoft 365
+  Copilot) under the rules in [AGENTS.md](AGENTS.md).
+- To see it run: follow the first 4 setup commands below, then run
+  `venv\Scripts\python.exe -m pytest tests/plugins tests/internal_api/test_data_choice.py tests/internal_api/test_http_exchange_log.py`
+  (`venv/bin/python` on Mac or Linux).
+- The case study that covers all three repos:
+  [qa-automation-case-study](https://github.com/JustVar/qa-automation-case-study).
+- The two sibling repos:
+  [Soterix-WebApp-QA](https://github.com/JustVar/Soterix-WebApp-QA) and
+  [SOTERIX-QA-SHARED](https://github.com/JustVar/SOTERIX-QA-SHARED).
+
+## What this repo does
+
 This repo tests the APIs of the Soterix VSaaS platform with HTTP requests
 against one QA server. It uses no browser. A test sends a request, then
 checks the status, the shape and the content of the answer.

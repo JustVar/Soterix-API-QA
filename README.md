@@ -3,11 +3,8 @@
 ## About this repo
 
 API test automation for the VSaaS platform behind NexaiQ-Core, the web app of
-Soterix Systems, an AI video-surveillance SaaS startup. Built by Justin
-Varughese (System Platform QA/QC Manager). The suites started inside the web app repo and moved here
-in August 2026. Soterix has since closed. The QA server is gone, so only the
-offline tests can run, and CI, which ran on the company's copies of these
-repos, is switched off here.
+Soterix Systems, an AI video-surveillance SaaS company. Built by Justin
+Varughese, System Platform QA/QC Manager.
 
 - 55 functional tests of the internal API, a sweep of 101 read endpoints and
   17 tests of the partner API.
@@ -34,6 +31,10 @@ repos, is switched off here.
 - The two sibling repos:
   [Soterix-WebApp-QA](https://github.com/JustVar/Soterix-WebApp-QA) and
   [SOTERIX-QA-SHARED](https://github.com/JustVar/SOTERIX-QA-SHARED).
+- Running it today: Soterix has since closed and its QA server is gone, so
+  the API tests have nothing to run against. The offline tests above still
+  run on any machine. CI ran on the company's copies of these repos and is
+  switched off here.
 
 ## What this repo does
 

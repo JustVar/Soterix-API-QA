@@ -45,7 +45,7 @@ captcha, no UI login.
 Python 3.14. 5 commands:
 
 ```powershell
-git clone https://github.com/Soterix-Systems/Soterix-API-QA.git C:\qa\api-qa
+git clone https://github.com/JustVar/Soterix-API-QA.git C:\qa\api-qa
 cd C:\qa\api-qa
 python -m venv venv
 venv\Scripts\python.exe -m pip install -r requirements.txt

@@ -6,9 +6,15 @@ Every internal endpoint this repo has found or tested, one row each. Read
 test covers it. This file holds the request and response shapes and the
 date each contract was last confirmed on QA.
 
-Last verified: **2026-08-27** (QA; key-management rows verified live by
-`test_api_integration_key_apis.py`; prior full run 2026-08-24: 38 passed,
-1 skipped for missing SSO credentials).
+Rows last verified: **2026-08-27** (QA; key-management rows verified live
+by `test_api_integration_key_apis.py`; prior full run 2026-08-24: 38
+passed, 1 skipped for missing SSO credentials).
+
+Last live runs on record: 2026-09-01, the whole internal suite, 120
+passed, 47 skipped, 0 failed (commit 1c22aec); 2026-09-29, the location
+and bookmark tests, 9 passed (commit 8329418). Soterix Systems has since
+closed. Each row is as last measured, and none can be measured again on
+that server.
 
 ## How to read the table
 

@@ -24,8 +24,8 @@ Varughese, System Platform QA/QC Manager.
 - Built with AI coding agents (Claude Code, OpenAI Codex, Microsoft 365
   Copilot) under the rules in [AGENTS.md](AGENTS.md).
 - To see it run: follow the first 4 setup commands below, then run
-  `venv\Scripts\python.exe -m pytest tests/plugins tests/internal_api/test_data_choice.py tests/internal_api/test_http_exchange_log.py`
-  (`venv/bin/python` on Mac or Linux).
+  `venv\Scripts\python.exe -m pytest tests/plugins tests/internal_api/test_data_choice.py tests/internal_api/test_http_exchange_log.py tests/internal_api/test_auth_cache.py tests/internal_api/test_login_label.py`
+  (`venv/bin/python` on Mac or Linux). These 47 tests need no server.
 - The case study that covers all three repos:
   [qa-automation-case-study](https://github.com/JustVar/qa-automation-case-study).
 - The two sibling repos:

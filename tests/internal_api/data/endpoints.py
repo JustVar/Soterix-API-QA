@@ -171,11 +171,11 @@ GET_ENDPOINTS = [
 # keep the row only if the endpoint still fails for the stated reason.
 # ---------------------------------------------------------------------------
 
-# Every reason below was measured on qa.example.invalid in 2026-09.
-# README.md says whether that is still the server config/env/qa.py names.
+# Every reason below was measured on the QA server in 2026-09.
+# The server config/env/qa.py names today is a placeholder, not that server.
 # A new server does not inherit the rows silently: the prefix says so in
 # the skip message.
-_MEASURED = "measured on qa.example.invalid in 2026-09, re-measure on a new server: "
+_MEASURED = "measured on the QA server in 2026-09, re-measure on a new server: "
 
 # One shared reason for the endpoints that the server proxies to a site's
 # recorder (VMS). Sites without a recorder answer 502 on all of them while

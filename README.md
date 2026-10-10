@@ -80,7 +80,9 @@ captcha, no UI login.
 
 ## Setup
 
-Python 3.14. 5 commands:
+Python 3.14. 5 commands. They are for Windows PowerShell. On Mac or Linux,
+clone to any path, use `venv/bin/python` wherever a command says
+`venv\Scripts\python.exe`, and use `cp` instead of `copy`.
 
 ```powershell
 git clone https://github.com/JustVar/Soterix-API-QA.git C:\qa\api-qa
@@ -93,19 +95,20 @@ copy .env.template .env
 `pip install` takes about 1 minute and asks for no credential. The shared
 package comes from `vendor/`, so no other repository access is needed.
 
-Then fill 2 lines in `.env`:
+Then fill 3 lines in `.env`:
 
 ```
-QA_USER=        the account the tests sign in as
+QA_USER=               the account the tests sign in as
 QA_PASSWORD=
+LOGIN_USERNAME_LABEL=  the fixed label the web app sends with every login
 ```
 
 Leave every other line as it is.
 
 The server and the test data live in one file, `config/env/qa.py`:
 `base_url`, `api_base_url`, `integration_api_base_url`, `test_site_name`
-and `test_camera_name`. If the server is not the one in that file, edit
-those keys. The file's header lists them. `test_site_name` and
+and `test_camera_name`. The server in that file is a placeholder
+(`qa.example.invalid`): set the keys to the server you test. The file's header lists them. `test_site_name` and
 `test_camera_name` may stay blank: the run then uses the first site by
 name that has a camera, and the first camera by name on it, and prints
 the choice. A name that is set is checked, never replaced. To see the
@@ -126,7 +129,9 @@ run on this machine. Open the run page. A failed test shows its error and
 the HTTP exchanges that led to it. A skipped test shows its reason.
 "skipped" is not "passed".
 
-If login fails, read the error. It says which of 3 things is wrong:
+If login fails, read the error. It says which of 3 things is wrong. A
+blank `LOGIN_USERNAME_LABEL` stops the run before the request with a
+message that names it.
 
 | Error | Meaning | Fix |
 |---|---|---|
@@ -154,11 +159,10 @@ the key is missing, not that the surface passed.
 
 The endpoint sweep in `tests/internal_api/test_get_endpoints_sweep.py` skips
 the endpoints listed in `tests/internal_api/data/endpoints.py`
-(`KNOWN_LIMITATIONS`). Every reason there names the server and the month
-it was measured on (`_MEASURED` in that file). That is the server in
-`config/env/qa.py` today, so the rows apply. On a new server, delete a
-row, run the sweep, and keep the row only if the endpoint still fails for
-the stated reason.
+(`KNOWN_LIMITATIONS`). Every reason there says it was measured on the
+company's QA server and in which month (`_MEASURED` in that file). On a
+new server, delete a row, run the sweep, and keep the row only if the
+endpoint still fails for the stated reason.
 
 ## TLS
 

@@ -36,7 +36,7 @@ ruff==0.16.5
 #
 # UPDATING THE PACKAGE: in the package repo, bump the version in
 # pyproject.toml, push, wait for its CI, tag vX.Y.Z, then build the wheel:
-#     python -m build --wheel
+#     python -m pip wheel . --no-deps -w dist
 # Copy dist/soterix_qa_shared-X.Y.Z-py3-none-any.whl into vendor/, delete the
 # old wheel, change the version below, reinstall, run the offline suites, commit.
 #

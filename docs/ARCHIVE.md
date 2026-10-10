@@ -2,9 +2,8 @@
 
 On 2026-09-29 the framework was cut down to one QA server, one account
 pair and CI on GitHub's machines. The files that described the old setup
-left `main`. They are not lost. The git tag `pre-pivot` and the branch
-`archive/pre-pivot` hold the last commit before the cut. Do not delete
-that branch.
+left `main`. They are not lost. The branch `archive/pre-pivot` holds the
+last commit before the cut. Do not delete that branch.
 
 The archived files describe machines, tenants and accounts that no longer
 exist. Restore one only to read it or to adapt it.
@@ -12,7 +11,7 @@ exist. Restore one only to read it or to adapt it.
 The one restore command, from the repo root:
 
 ```
-git checkout pre-pivot -- <path>
+git checkout archive/pre-pivot -- <path>
 ```
 
 ## What left, by area

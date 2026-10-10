@@ -46,9 +46,10 @@ def test_central_login_accepts_valid_credentials(api_base_url, login_data):
 def test_login_contract_returns_a_session(api_base_url, login_data):
     """POST /REST/central/user/login answers 200 / status 2002 with a JSESSIONID the session endpoint accepts.
 
-    The body is {accountid: <email>, username: "Example Label", password: <sha512
-    hex>}. "Example Label" is the literal the web client sends. The account goes
-    in accountid. No captcha is involved on this path. The UI suite
+    The body is {accountid: <email>, username: <LOGIN_USERNAME_LABEL>,
+    password: <sha512 hex>}. The label is the fixed value the web client
+    sends for every account. The account goes in accountid. No captcha is
+    involved on this path. The UI suite
     (Soterix-WebApp-QA) signs in with this exact body to build its test
     data, so a change here breaks its setup.
     """
@@ -60,7 +61,7 @@ def test_login_contract_returns_a_session(api_base_url, login_data):
     email = login_data["username"]
     body = {
         "accountid": email,
-        "username": "Example Label",
+        "username": os.environ.get("LOGIN_USERNAME_LABEL", ""),
         "password": hashlib.sha512(login_data["password"].encode("utf-8")).hexdigest(),
     }
     r = requests.post(f"{base}/REST/central/user/login", json=body, timeout=20, verify=ssl_verify())

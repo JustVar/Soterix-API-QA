@@ -12,16 +12,21 @@ from .tls import ssl_verify
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-# The web app authenticates against this endpoint. It is NOT the same one as
-# /REST/central/user/auth/login, which requires a `captcha` parameter that only
-# the browser can produce -- that endpoint is unusable from an API client.
+# The web app authenticates against this endpoint. The other login endpoint
+# on the server needs a token that only the browser can produce, so an API
+# client cannot use it.
 _LOGIN_PATH = "/REST/central/user/login"
 
-# The SPA sends a hardcoded literal here; `accountid` carries the real email.
-# Read from the app's JS bundle (chunk 6031), the same build on every server
-# seen so far. If the vendor ever changes it, login breaks -- hence the
-# explicit message in _api_login() rather than a bare "invalid credentials".
-_LOGIN_USERNAME_LITERAL = "Example Label"
+
+def _login_username_label() -> str:
+    """Return the fixed username label the login request carries.
+
+    The web app sends one fixed label in the `username` field for every
+    account; `accountid` carries the real email. The label is a server
+    setting, so it lives in .env as LOGIN_USERNAME_LABEL, not in code. It is
+    read at call time because .env is loaded after this module is imported.
+    """
+    return os.environ.get("LOGIN_USERNAME_LABEL", "")
 
 
 class AuthHelper:
@@ -125,18 +130,22 @@ class AuthHelper:
     def _api_login(self, email: str, password: str) -> str:
         """Authenticate over HTTP and return the JSESSIONID. No browser involved.
 
-        Mirrors exactly what the web app does: POST the SHA512 hex digest of the
-        password to /REST/central/user/login. Sending the plaintext password, or
-        using /REST/central/user/auth/login, always fails -- the latter requires a
-        captcha token only a browser can produce.
+        Mirrors what the web app does: POST a SHA512 hex digest of the
+        password, never the plaintext, to the login path.
 
         Raises RuntimeError with a message that says which of the three distinct
         failure modes occurred, because they need completely different fixes.
         """
+        label = _login_username_label()
+        if not label:
+            raise RuntimeError(
+                "LOGIN_USERNAME_LABEL is blank in .env. The login request carries "
+                "the fixed username label the web app sends. Set it, then rerun."
+            )
         url = f"{self.base_url}{_LOGIN_PATH}"
         payload = {
             "accountid": email,
-            "username": _LOGIN_USERNAME_LITERAL,
+            "username": label,
             "password": hashlib.sha512(password.encode("utf-8")).hexdigest(),
         }
 
@@ -160,9 +169,8 @@ class AuthHelper:
             raise RuntimeError(
                 f"Account '{email}' exists on {self.base_url} but the password was "
                 f"rejected. The stored password is most likely stale -- refresh it in "
-                f".env. (If it is definitely correct, the SPA's login contract may have "
-                f"changed; verify username literal '{_LOGIN_USERNAME_LITERAL}' and the "
-                f"SHA512 hashing against the app's JS bundle.)"
+                f".env. (If it is definitely correct, check LOGIN_USERNAME_LABEL in "
+                f".env: the login request carries that label.)"
             )
         if r.status_code != 200:
             raise RuntimeError(

@@ -29,8 +29,8 @@ POST {host}/v-apiserver/REST/central/user/login
 Content-Type: application/json
 
 {
-  "accountid": "user@soterixsystems.com",   <- the EMAIL goes here
-  "username":  "Example Label",                   <- hardcoded literal, not the user
+  "accountid": "user@example.com",          <- the EMAIL goes here
+  "username":  "<LOGIN_USERNAME_LABEL>",    <- a fixed label, not the user
   "password":  "<SHA512 hex digest of the plaintext password>"
 }
 ```
@@ -56,9 +56,10 @@ pins this contract (verified 2026-08-24).
 - **`/REST/sso/login`** returns "Missing one or more mandatory request
   parameter(s)" for every shape tried. Its required parameters are unknown.
 
-The `accountid` / `"Example Label"` / SHA512 contract was read from the web app's own
-JS bundle (chunk `6031-*.js`), the same build on every server seen so far.
-If login ever breaks with correct credentials, re-check that chunk first.
+The fixed label is the same for every account. It is a server setting, so
+it lives in `.env` as `LOGIN_USERNAME_LABEL`, not in code. The login fails
+fast with a message that names it when it is blank. If login ever breaks
+with correct credentials, check that label first.
 
 ### Reading login failures
 

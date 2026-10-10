@@ -26,16 +26,16 @@ API_PREFIX_ROOT = "/v-apiserver/REST"
 
 # Request timeout (seconds). Generous by default: snapshot/aggregation
 # endpoints are known to be slow.
-DEFAULT_TIMEOUT = int(os.getenv("API_TIMEOUT_SECONDS", "120"))
+DEFAULT_TIMEOUT = int(os.getenv("API_TIMEOUT_SECONDS") or "120")
 
 # How long an async clip/media export job may stay INPROGRESS before the
 # e2e test fails it. Recon showed jobs still INPROGRESS past 5 minutes even
 # for a real recorded clip, so this is deliberately shorter than that.
-CLIP_EXPORT_TIMEOUT_SECONDS = int(os.getenv("CLIP_EXPORT_TIMEOUT_SECONDS", "120"))
+CLIP_EXPORT_TIMEOUT_SECONDS = int(os.getenv("CLIP_EXPORT_TIMEOUT_SECONDS") or "120")
 
 # How much of the recorded window to request for export, in seconds. Clamped
 # to whatever footage is actually available, so a short real clip still works.
-CLIP_EXPORT_DURATION_SECONDS = int(os.getenv("CLIP_EXPORT_DURATION_SECONDS", "60"))
+CLIP_EXPORT_DURATION_SECONDS = int(os.getenv("CLIP_EXPORT_DURATION_SECONDS") or "60")
 
 # Recipient for the media-share step. Empty by default so the share test
 # SKIPS instead of sending a real email. Set MEDIA_SHARE_TEST_EMAIL in .env

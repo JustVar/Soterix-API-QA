@@ -7,8 +7,8 @@
 # and an unpinned requirement means the merge gate installs whatever PyPI has
 # that morning. Identical code could pass yesterday and fail today.
 #
-# Dependabot bumps these as PRs the gate has to prove, so "pinned" does not
-# become "stale". See .github/dependabot.yml.
+# While the repo was in use, Dependabot bumped these as PRs the gate had to
+# prove, so "pinned" did not become "stale".
 pytest==9.1.1
 requests==2.34.2
 python-dotenv==1.2.3

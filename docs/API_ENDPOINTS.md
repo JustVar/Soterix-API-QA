@@ -1,6 +1,6 @@
 # Soterix VSaaS - API Endpoint Catalog
 
-Living catalog of every REST endpoint the NexaiQ-Core SPA exercises, with smoke-test coverage status. Source of truth: a live network capture on a staging server. Vendor swagger is currently stale (per 2026-05-15 audit) - trust this doc over swagger until a refreshed spec is delivered.
+Living catalog of every REST endpoint the NexaiQ-Core SPA exercises, with smoke-test coverage status. Source of truth: a live network capture on an earlier server (see Base path below). The vendor swagger was found incomplete in a 2026-05-15 audit, so trust this doc over the swagger.
 
 This file says where each call surfaces and whether a test covers it. Request
 and response shapes, and the date each was verified on QA, live in
@@ -32,8 +32,8 @@ Auth: JSESSIONID cookie (not JWT). See `api_clients/auth_helper.py`.
 
 | Status | Method | Path | Notes |
 |---|---|---|---|
-| covered | POST | `/REST/central/user/login` | The login the web client uses (JSON body, SHA512 password, no captcha). Used by `auth_helper.py`. `test_auth_apis.py::test_login_contract_returns_a_session` |
-| covered | POST | `/REST/central/user/auth/login` | Captcha-gated browser login. Unusable from an API client. `test_auth_apis.py` pins the rejection. |
+| covered | POST | `/REST/central/user/login` | The login the web client uses (JSON body, SHA512 password, no captcha). Used by `auth_helper.py`. `test_auth_apis.py::test_login_contract_returns_a_session` pins the contract and `::test_central_login_rejects_invalid_credentials` the refusal of an unknown account. |
+| uncovered | POST | `/REST/central/user/auth/login` | Captcha-gated browser login. Unusable from an API client. Its rejection is documented in INTERNAL_API_INVENTORY.md, not tested. |
 | uncovered | POST | `/REST/sso/login` | Parameters unknown. `test_auth_apis.py` skips without `SSO_TEST_USERNAME`. Not used by `auth_helper.py`. |
 | untriggered | POST | `/REST/site/{siteId}/auth/logout` | Inferred from prior swagger. Not yet exercised. |
 | covered | GET | `/REST/central/user/session` | `test_user_apis.py::test_get_user_session` |

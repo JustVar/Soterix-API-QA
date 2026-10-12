@@ -1,15 +1,14 @@
 """
 Auth API smoke (central + SSO login)
 
-Covers the login path the web client uses (central/user/login), the
-captcha-gated path it must reject from an API client, and the SSO path.
+Covers the login path the web client uses (central/user/login), its
+refusal of an unknown account, and the SSO path.
 Logout is intentionally omitted - exercising it on a shared session
 would terminate other concurrently running tests.
 
 Catalog rows (see docs/INTERNAL_API_INVENTORY.md):
 - POST /REST/central/user/login (the working contract, pinned below)
 - GET  /REST/central/user/session
-- POST /REST/central/user/auth/login (captcha-gated, rejects API clients)
 - POST /REST/sso/login
 """
 import os
@@ -85,30 +84,38 @@ def test_login_contract_returns_a_session(api_base_url, login_data):
 @pytest.mark.api
 @pytest.mark.smoke
 def test_central_login_rejects_invalid_credentials(api_base_url):
-    """POST /REST/central/user/auth/login with bogus creds returns non-2xx.
+    """POST /REST/central/user/login for an unknown account answers 404 and opens no session.
 
-    Calls the endpoint directly with requests, so the test pins the
-    endpoint's own rejection rather than AuthHelper's error handling.
+    This is the login the web client and AuthHelper use, so the refusal is
+    the one a stale QA_USER meets. The inventory records 404 "There is no
+    user with the userid!" for an unknown account (verified 2026-08-24).
+    The test calls the endpoint directly with requests, so it pins the
+    server's refusal rather than AuthHelper's handling of it. An unknown
+    account is used on purpose: wrong passwords against the shared QA
+    account could lock it.
     """
+    import hashlib
+
+    label = os.environ.get("LOGIN_USERNAME_LABEL", "")
+    if not label:
+        pytest.skip("LOGIN_USERNAME_LABEL is blank in .env, so the server would refuse the label, not the account")
     base = api_base_url.rstrip("/")
     if not base.endswith("/v-apiserver"):
         base = base + "/v-apiserver"
-    url = f"{base}/REST/central/user/auth/login"
-    r = requests.post(
-        url,
-        json={"username": "not-a-real-user@example.invalid", "password": "wrong-password"},
-        timeout=15,
-        verify=ssl_verify(),
-    )
-    # Vendor returns 401/403 for bad creds; some deployments return 200 with
-    # an error body. Either way, the response must NOT contain a usable token.
-    body = {}
+    body = {
+        "accountid": "not-a-real-user@example.invalid",
+        "username": label,
+        "password": hashlib.sha512(b"wrong-password").hexdigest(),
+    }
+    r = requests.post(f"{base}/REST/central/user/login", json=body, timeout=15, verify=ssl_verify())
+    assert r.status_code == 404, f"Expected 404 for an unknown account, got {r.status_code}: {r.text[:300]}"
     try:
-        body = r.json()
+        result = r.json().get("result") or []
     except ValueError:
-        pass
-    token = body.get("token") or body.get("access_token") or (body.get("data") or {}).get("token")
-    assert not token, f"Invalid creds yielded a token: status={r.status_code} body={r.text[:300]}"
+        result = []
+    tokens = [row.get("JSESSIONID") for row in result if isinstance(row, dict) and row.get("JSESSIONID")]
+    assert not tokens, f"An unknown account got a session in the body: {r.text[:300]}"
+    assert not r.cookies.get("JSESSIONID"), "An unknown account got a session cookie"
 
 
 @pytest.mark.api

@@ -205,7 +205,6 @@ api_clients/        internal-suite HTTP clients (auth, cameras, locations, bookm
 config/             config/env/qa.py (the server), the collect floor, the QA Touch case mapping
 docs/               API_SURFACES.md (start here), INTERNAL_API_INVENTORY.md, endpoint catalog, ARCHIVE.md
 plugins/            shims over the shared package: run archive, QA Touch reporter
-schemas/            OpenAPI snapshot of the QA server: a reference for paths and request bodies (docs/API_SURFACES.md says why it cannot check a response)
 tests/internal_api/     internal-API suite (fixtures in its conftest.py)
 tests/integration_api/  integration-API suite (key auth, endpoint sweep)
 tests/plugins/      offline pins: shim guards, shared-package pin

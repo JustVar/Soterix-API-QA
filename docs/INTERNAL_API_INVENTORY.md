@@ -29,12 +29,13 @@ that server.
   file. "staging capture
   2026-05-15" means the row comes from the Chrome network capture behind
   `API_ENDPOINTS.md` and nothing here has called it since. "spec only,
-  untested" means the path is in `schemas/openapi_spec_qa.json` (893
+  untested" means the path is in the QA server's OpenAPI spec (893
   paths) and nothing here has called it.
 - "Used by" names the `api_clients/` module, the `tests/internal_api/`
   file, or "WebApp QA fixture" (Soterix-WebApp-QA, `tests/shared/api/`).
-- Every path in this file is present in the QA spec snapshot. The spec
-  is still stale on request shapes (see the login row).
+- Every path in this file is present in the QA server's spec. The spec
+  is still stale on request shapes (see the login row). The spec itself
+  is not kept in this repo (`docs/API_SURFACES.md` says why).
 
 ## Contracts the UI suite depends on
 

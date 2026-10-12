@@ -122,8 +122,11 @@ pins the 1006 shape.
 
 ### What the spec says about a response
 
-The spec snapshot (`schemas/openapi_spec_qa.json`) cannot check what an
-endpoint returns. It gives every operation a response schema, but the
+The vendor's OpenAPI spec cannot check what an endpoint returns. This copy
+of the repo does not keep the spec: it is the vendor's document, and nothing
+in the suite reads it. `tools/download_openapi_spec.py` fetches a fresh copy
+from a server into `schemas/`, which git ignores. The findings below were
+measured on a snapshot of the QA server's spec. It gives every operation a response schema, but the
 schema is a wrapper with no fields for the data:
 
 - The suites call 138 operations that are in the spec. 127 answer
@@ -133,8 +136,8 @@ schema is a wrapper with no fields for the data:
 - Across all 1,012 operations in the spec, 7 schemas are ever used as a
   response: `ResponseVO`, `VRCSResponse`, `StreamingResponseBody` and the 4
   live and archive start and stop types.
-- The other 220 files in `schemas/responses/` describe request bodies and
-  the types nested inside them. No response points at them.
+- The other 220 schemas describe request bodies and the types nested
+  inside them. No response points at them.
 
 So a test checks the shape of `result` itself, from the measured shapes in
 `INTERNAL_API_INVENTORY.md`, and the spec is a reference for paths and

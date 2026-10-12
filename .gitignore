@@ -27,3 +27,5 @@ docs/local/
 
 # The per-run ledger the reporter writes when a run is armed. Local to the machine.
 history/
+# A downloaded vendor spec (tools/download_openapi_spec.py). Not committed.
+schemas/

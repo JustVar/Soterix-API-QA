@@ -22,7 +22,8 @@ import requests
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-# schemas/ at the repo root is where the committed specs live
+# schemas/ at the repo root is where a downloaded spec lands. Git ignores
+# it: the spec is the vendor's document, so it is not committed.
 OUT_DIR = ROOT / "schemas"
 
 

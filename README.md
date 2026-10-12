@@ -6,10 +6,13 @@ API test automation for the VSaaS platform behind NexaiQ-Core, the web app of
 Soterix Systems, an AI video-surveillance SaaS company. Built by Justin
 Varughese, System Platform QA/QC Manager.
 
-- 55 functional tests of the internal API, a sweep of 101 read endpoints and
-  17 tests of the partner API.
+- 52 functional tests of the internal API, a sweep of 101 read endpoints
+  (67 checked for a 200 answer and valid JSON, 34 skipped with the
+  measured reason) and 17 tests of the partner API.
 - 83 internal endpoints documented from the live system, each with the date
-  it was last confirmed
+  it was last confirmed. These are the endpoints the clients and the
+  functional tests use, with their request and response shapes; the
+  sweep's list is separate
   ([docs/INTERNAL_API_INVENTORY.md](docs/INTERNAL_API_INVENTORY.md)).
 - Where to start:
   - The login triage ([api_clients/auth_helper.py](api_clients/auth_helper.py)),
@@ -28,6 +31,8 @@ Varughese, System Platform QA/QC Manager.
   (`venv/bin/python` on Mac or Linux). These 47 tests need no server.
 - The case study that covers all three repos:
   [qa-automation-case-study](https://github.com/JustVar/qa-automation-case-study).
+  Its [Terms](https://github.com/JustVar/qa-automation-case-study#terms)
+  section explains the words these READMEs use.
 - The two sibling repos:
   [Soterix-WebApp-QA](https://github.com/JustVar/Soterix-WebApp-QA) and
   [SOTERIX-QA-SHARED](https://github.com/JustVar/SOTERIX-QA-SHARED).
@@ -117,10 +122,10 @@ sites and the cameras the account can see, run
 
 ## The first run
 
-One test, under 10 seconds:
+One test. It signs in, then reads the camera tree of the test site:
 
 ```powershell
-venv\Scripts\python.exe -m pytest tests\internal_api\test_auth_apis.py::test_login_contract_returns_a_session
+venv\Scripts\python.exe -m pytest tests\internal_api\test_camera_apis.py::test_get_camera_tree
 ```
 
 The last line prints `1 passed`. The run's page is
@@ -173,9 +178,9 @@ signed, and a failed handshake then reads as "Could not reach the API".
 
 ## Before you push: the collect gate
 
-CI runs `.github/workflows/collect-gate.yml` on a push to `main` and on
-every pull request, on GitHub's machines, with no secret. It proves the
-wiring, not the surface:
+The workflow `.github/workflows/collect-gate.yml` runs these checks on
+GitHub's machines with no secret. It is switched off on this copy, so run
+the same commands by hand. They prove the wiring, not the surface:
 
 1. `pytest --collect-only` and `pytest --setup-plan`: every import and
    fixture resolves. No test runs.
@@ -183,7 +188,9 @@ wiring, not the surface:
    drop below `config/collect_floor.json`. If you removed tests on
    purpose, run `python tools/collect_floor.py --update` and say why in
    the commit message.
-3. `pytest tests/plugins`: the shim guards and the shared-package pin.
+3. `pytest tests/plugins`, then the 4 offline files of the internal suite
+   (the command under "About this repo"): the shim guards, the
+   shared-package pin, and the client code with its HTTP calls stubbed.
 4. `pytest tests/integration_api`: self-skipping without the key.
 5. `python -m ruff check .`
 

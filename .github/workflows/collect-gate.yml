@@ -55,12 +55,16 @@ jobs:
       # combined number still looks healthy.
       - name: Collected-test floor
         run: python tools/collect_floor.py
-      # tests/plugins holds the shim guards and the shared-package pin.
-      # tests/integration_api skips every test without VSAAS_INTEGRATION_KEY,
-      # so here it proves wiring, not the surface.
+      # tests/plugins holds the shim guards and the shared-package pin. The
+      # four internal_api files below stub their HTTP calls, so they need no
+      # server: the site and camera choice, the exchange log, the session
+      # cache and the login label. tests/integration_api skips every test
+      # without VSAAS_INTEGRATION_KEY, so here it proves wiring, not the
+      # surface.
       - name: Offline suites
         run: |
           pytest tests/plugins
+          pytest tests/internal_api/test_data_choice.py tests/internal_api/test_http_exchange_log.py tests/internal_api/test_auth_cache.py tests/internal_api/test_login_label.py
           pytest tests/integration_api
       - name: Lint
         run: python -m ruff check .

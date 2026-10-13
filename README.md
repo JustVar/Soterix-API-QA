@@ -1,5 +1,8 @@
 # Soterix API - QA
 
+API test automation (pytest and requests) for an AI video analytics (VSaaS)
+platform.
+
 ## About this repo
 
 API test automation for the VSaaS platform behind NexaiQ-Core, the web app of
